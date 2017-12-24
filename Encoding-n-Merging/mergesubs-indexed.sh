@@ -32,8 +32,25 @@ do
     FILEBASE="${i%.mp4}"        # Strip the extension
     INDEX="${i:0:3}"            # First three characters of the file
     SRT=`ls $INDEX*.srt`        # Subtitle file has the same index
-    ffmpeg -i "$FILEBASE.mp4" -i "$SRT" -map 0 -map 1:0 -map_metadata 0 -map_chapters 0 -c copy -copy_unknown "$FILEBASE.mkv"
-    
-    # stream 0 = video, 1=subtitle. map 1:0 = map subtitle stream(1) to video stream(0)
-#   echo "$SRT"
+    echo "Merge :"
+    echo "$FILEBASE.mp4 $SRT to"
+    echo "$FILEBASE.mkv"
 done
+
+echo
+echo "Looks good? (y/n)"
+read chk
+echo
+
+if [ $chk = 'y' -o $chk = 'Y' ]; then
+    for i in *.mp4
+    do
+        FILEBASE="${i%.mp4}"        # Strip the extension
+        INDEX="${i:0:3}"            # First three characters of the file
+        SRT=`ls $INDEX*.srt`        # Subtitle file has the same index
+        ffmpeg -i "$FILEBASE.mp4" -i "$SRT" -map 0 -map 1:0 -map_metadata 0 -map_chapters 0 -c copy -copy_unknown "$FILEBASE.mkv"
+        # stream 0 = video, 1=subtitle. map 1:0 = map subtitle stream(1) to video stream(0)
+    done
+else
+    exit 
+fi
