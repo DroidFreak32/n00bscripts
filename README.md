@@ -1,5 +1,4 @@
 # n00bscripts
-# MergingScripts
 ## Replace text from files
 	perl -pi -w -e 's/<OLD>/<NEW>/g;' <filename>
 
