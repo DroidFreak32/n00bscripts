@@ -4,7 +4,10 @@
 
 Replace `<OLD>` with the current tag and `<NEW>` with the new one
 
-## Check for missing/corrupted FLAC files
+## Recursively Check for missing/corrupted FLAC files
+	grep -a -L -r --include="*.flac" "libFLAC"
+
+## Check for files that weren't properly encoded to OPUS
 ```
 # Finds all *.flac files and sends the sorted list to a.txt
 find . -name "*.flac" | sort > a.txt
