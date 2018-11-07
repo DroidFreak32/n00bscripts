@@ -1,14 +1,16 @@
 # n00bscripts
 ## Replace text from files
-	perl -pi -w -e 's/<OLD>/<NEW>/g;' <filename>
-
+```bash
+perl -pi -w -e 's/<OLD>/<NEW>/g;' <filename>
+```
 Replace `<OLD>` with the current tag and `<NEW>` with the new one
 
 ## Recursively Check for missing/corrupted FLAC files
-	grep -a -L -r --include="*.flac" "libFLAC"
-
-## Check for files that weren't properly encoded to OPUS
+```bash
+grep -a -L -r --include="*.flac" "libFLAC"
 ```
+## Check for files that weren't properly encoded to OPUS
+```bash
 # Finds all *.flac files and sends the sorted list to a.txt
 find . -name "*.flac" | sort > a.txt
 
