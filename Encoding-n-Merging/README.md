@@ -44,3 +44,10 @@ In this case, the tracks will be ordered as:
 2) b's *first* audio track only
 3) a's subtitles
 4) a's attachments
+
+### FFMpeg Replace existing subtitles with new ones (Same file name)
+```bash
+ffmpeg -i "$i.mkv" -i "$i.srt" -map 0:v -map 0:a -map 1:s -map 0:t? -map_metadata 0 -map_chapters 0 -c copy -copy_unknown "remux_$i.mkv"
+rm "$i.mkv" "$i.srt"
+```
+
