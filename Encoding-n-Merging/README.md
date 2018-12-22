@@ -28,7 +28,24 @@ Note: Here trackNo is usually 1+trackID found in `mkvmerge -i <filename>`
 ```bash
 mkvpropedit --edit track:<trackNo> --set language=jpn <filename>.mkv
 ```
-
+### MKVMerge - Batch add title to Videos
+```bash
+#!/bin/bash
+t_array=(
+"<TITLE 1>"
+"<TITLE 2>"
+.
+.
+"<TITLE n>"
+)
+index=0
+for i in *.mkv #Scan all mkv files (SHOULD BE SORTED ACCORDING TO THE RESPECTIVE TITLE)
+do
+	i="${i%.mkv}"	#Remove the extension
+	mkvpropedit "$i.mkv" --edit info --set "title=${t_array[$((index++))]}"
+	# echo "title=${var[$((index++))]}"
+done
+```
 ### FFMpeg 720p x265 encoding sweetspot (suggestions welcome)
 ```bash
 ffmpeg-10bit -i "$i.mkv" -map 0 -map_metadata 0 -map_chapters 0 -c copy -c:v libx265 -preset medium -x265-params "crf=25" -pix_fmt yuv420p10le -vf scale=1280:-2 -acodec libopus -af aformat=channel_layouts="7.1|5.1|stereo" -b:a 128k -copy_unknown "Encoded_$i.mkv"
