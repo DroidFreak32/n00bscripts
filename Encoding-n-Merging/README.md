@@ -48,12 +48,15 @@ done
 ```
 ### FFMpeg 720p x265 encoding sweetspot (suggestions welcome)
 ```bash
-ffmpeg-10bit -i "$i.mkv" -map 0 -map_metadata 0 -map_chapters 0 -c copy -c:v libx265 -preset medium -x265-params "crf=25" -pix_fmt yuv420p10le -vf scale=1280:-2 -acodec libopus -af aformat=channel_layouts="7.1|5.1|stereo" -b:a 128k -copy_unknown "Encoded_$i.mkv"
+ffmpeg -i "$i.mkv" -map 0 -map_metadata 0 -map_chapters 0 \
+	-c copy -c:v libx265 -preset medium -x265-params "crf=25" -pix_fmt yuv420p10le \
+	-vf scale=1280:-2 -acodec libopus -af aformat=channel_layouts="7.1|5.1|stereo" -b:a 128k \
+	-copy_unknown "Encoded_$i.mkv"
 ```
 
 ### FFMpeg reorder tracks
 ```bash
-ffmpeg-10bit -i a.mkv -i b.mkv -map_metadata 0 -map_chapters 0 -map 0:v:0 -map 1:a:0 -map 0:s:0 -map 0:t -c copy -copy_unknown output.mkv
+ffmpeg -i a.mkv -i b.mkv -map_metadata 0 -map_chapters 0 -map 0:v:0 -map 1:a:0 -map 0:s:0 -map 0:t -c copy -copy_unknown output.mkv
 ```
 This maps the tracks according to the order given in the `-map` option.  
 In this case, the tracks will be ordered as:
