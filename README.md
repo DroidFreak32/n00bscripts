@@ -38,4 +38,5 @@ do
         cd "$PARENTDIRNAME"
         rar a "$BASEDIRNAME".rar -m0 -df "$BASEDIRNAME"
         cd "$CWD"
-done```
+done
+```
