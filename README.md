@@ -23,3 +23,19 @@ find . -name "*.opus" | sort | sed 's/.opus$/.flac/g;' > a.txt
 # The FLAC files which are corrupted are now shown "missing" in the new list (As they couldn't be encoded).
 git diff a.txt
 ```
+
+## Archive SCANS folders from FLAC rips to reduce no. of files.
+```bash
+export CWD="$PWD"
+export array=()
+while IFS=  read -r -d $'\0'; do
+    array+=("$REPLY")
+done < <(find . -type d \( -iname "scan*" -o -iname "*bookl*" \) -print0)
+for i in "${array[@]}"
+do
+        BASEDIRNAME=$(basename "$i")
+        PARENTDIRNAME=$(dirname "$i")
+        cd "$PARENTDIRNAME"
+        rar a "$BASEDIRNAME".rar -m0 -df "$BASEDIRNAME"
+        cd "$CWD"
+done```
