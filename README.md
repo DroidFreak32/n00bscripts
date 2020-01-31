@@ -7,7 +7,7 @@ Replace `<OLD>` with the current tag and `<NEW>` with the new one
 
 ## Recursively Check for missing/corrupted FLAC files
 ```bash
-grep -a -L -r --include="*.flac" "libFLAC"
+grep -a -L -r -E --include="*.flac" "libFLAC|fLaC"
 ```
 ## Check for files that weren't properly encoded to OPUS
 ```bash
