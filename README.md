@@ -40,3 +40,25 @@ do
         cd "$CWD"
 done
 ```
+
+## Backup the rootfs of Ubuntu 18.04 with Multi-Threaded compression (Requires pxz).
+```bash
+XZ_OPT=-e9 tar -I pxz -cpf backup.tar.xz
+--exclude=/backup.tar.xz \
+--exclude=/proc \
+--exclude=/tmp \
+--exclude=/mnt \
+--exclude=/dev \
+--exclude=/sys \
+--exclude=/swap.img \
+--exclude=/run \
+--exclude=/media \
+--exclude=/var/log \
+--exclude=/var/cache/apt/archives \
+--exclude=/usr/src/linux-headers* \
+--exclude=/home/*/.gvfs \
+--exclude=/home/*/.cache \
+--exclude=/home/*/.ccache \
+--exclude=/home/*/.local/share/Trash \
+--exclude=/home/*/los \
+--exclude=/home/*/.gdfuse/*/cache /
