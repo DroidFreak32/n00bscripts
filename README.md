@@ -43,8 +43,8 @@ done
 
 ## Backup the rootfs of Ubuntu 18.04 with Multi-Threaded compression (Requires pxz).
 ```bash
-XZ_OPT=-e9 tar -I pxz -cpf backup.tar.xz
---exclude=/backup.tar.xz \
+XZ_OPT=-e9 tar -I pxz -cp \
+--exclude=/backup.txz.gpg \
 --exclude=/proc \
 --exclude=/tmp \
 --exclude=/mnt \
@@ -61,4 +61,4 @@ XZ_OPT=-e9 tar -I pxz -cpf backup.tar.xz
 --exclude=/home/*/.ccache \
 --exclude=/home/*/.local/share/Trash \
 --exclude=/home/*/los \
---exclude=/home/*/.gdfuse/*/cache /
+--exclude=/home/*/.gdfuse/*/cache / | gpg -e -r rushabshah32@gmail.com -o backup.txz.gpg
