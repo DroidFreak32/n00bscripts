@@ -62,3 +62,11 @@ XZ_OPT=-e9 tar -I pxz -cp \
 --exclude=/home/*/.local/share/Trash \
 --exclude=/home/*/los \
 --exclude=/home/*/.gdfuse/*/cache / | gpg -e -r rushabshah32@gmail.com -o backup.txz.gpg
+```
+
+## To extract the backup:
+```bash
+gpg --armor  --export-secret-keys rushabshah32@gmail.com > private.key
+gpg --import private.key
+gpg -d backup.txz.gpg | tar -xz
+```
