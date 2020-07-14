@@ -64,9 +64,13 @@ XZ_OPT=-9 tar -I pxz -cp \
 --exclude=/home/*/.gdfuse/*/cache / | gpg -e -r <email id> -o backup.txz.gpg
 ```
 
-## To extract the backup:
+## To extract the backup and install the system:
 ```bash
 gpg --armor  --export-secret-keys <email id> > private.key
 gpg --import private.key
 gpg -d backup.txz.gpg | tar -xJ
+
+for i in /dev /dev/pts /proc /sys /run; do sudo mount -B $i /mnt$i; done
+chroot /mnt
+grub-install /dev/sda
 ```
