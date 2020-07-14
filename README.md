@@ -43,7 +43,7 @@ done
 
 ## Backup the rootfs of Ubuntu 18.04 with Multi-Threaded compression (Requires pxz).
 ```bash
-XZ_OPT=-e9 tar -I pxz -cp \
+XZ_OPT=-9 tar -I pxz -cp \
 --exclude=/backup.txz.gpg \
 --exclude=/proc \
 --exclude=/tmp \
@@ -61,12 +61,12 @@ XZ_OPT=-e9 tar -I pxz -cp \
 --exclude=/home/*/.ccache \
 --exclude=/home/*/.local/share/Trash \
 --exclude=/home/*/los \
---exclude=/home/*/.gdfuse/*/cache / | gpg -e -r rushabshah32@gmail.com -o backup.txz.gpg
+--exclude=/home/*/.gdfuse/*/cache / | gpg -e -r <email id> -o backup.txz.gpg
 ```
 
 ## To extract the backup:
 ```bash
-gpg --armor  --export-secret-keys rushabshah32@gmail.com > private.key
+gpg --armor  --export-secret-keys <email id> > private.key
 gpg --import private.key
-gpg -d backup.txz.gpg | tar -xz
+gpg -d backup.txz.gpg | tar -xJ
 ```
