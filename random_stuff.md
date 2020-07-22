@@ -11,3 +11,9 @@ find . -type f -exec truncate -s 0 {} \;
 ```bash
 while read p; do ls -al "$p" ; done < list.txt
 ```
+---
+#### Build AOSP without getting bullied by metalava
+```bash
+WITHOUT_CHECK_API=true
+```
+---
