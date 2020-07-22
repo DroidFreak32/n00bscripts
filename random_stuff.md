@@ -12,7 +12,7 @@ find . -type f -exec truncate -s 0 {} \;
 while read p; do ls -al "$p" ; done < list.txt
 ```
 ---
-#### Build AOSP without getting bullied by metalava
+#### [Build AOSP without getting bullied by metalava](https://sx.ix5.org/info/building-android/#fnref:2)
 ```bash
 WITHOUT_CHECK_API=true
 ```
