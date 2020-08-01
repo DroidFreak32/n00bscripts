@@ -17,3 +17,8 @@ while read p; do ls -al "$p" ; done < list.txt
 WITHOUT_CHECK_API=true
 ```
 ---
+#### [Screen - start screen in detached mode](https://superuser.com/a/454914)
+```bash
+screen -d -m <yourcommand>
+```
+---
