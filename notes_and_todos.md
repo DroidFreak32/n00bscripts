@@ -65,3 +65,7 @@ Issue:
 
 Here the `android:max` is recognized `settings:units` is undefined.
 The namespace is defined here: https://github.com/DirtyUnicorns/android_vendor_support/blob/545a2c0d278f29569045e0e47b5a6f02c2d4a93a/src/com/dirtyunicorns/support/preferences/CustomSeekBarPreference.java#L40
+
+
+#### Use AOSP Keys to sign boot.imgs  
+https://forum.xda-developers.com/showpost.php?p=74473178&postcount=25
