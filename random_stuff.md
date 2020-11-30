@@ -22,3 +22,8 @@ WITHOUT_CHECK_API=true
 screen -d -m <yourcommand>
 ```
 ---
+#### Gerrit - search term to view all merged non-device related changes
+```
+status:merged -project:^LineageOS/android_device.+  -project:^LineageOS/android_kernel.+
+```
+---
