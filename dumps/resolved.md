@@ -48,7 +48,9 @@ I am able to ingest GA but unable to open it
 AndroidManifest.xml missed a .:
 ```xml
 android:name="gestures.gestureanywhere.GestureAnywhereSettings"
-android:name=".gestures.gestureanywhere.GestureAnywhereSettings"```
+android:name=".gestures.gestureanywhere.GestureAnywhereSettings"
+```
+
 ---
 Enter directory and archive all subdirs only
 
