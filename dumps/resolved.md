@@ -50,3 +50,13 @@ AndroidManifest.xml missed a .:
 android:name="gestures.gestureanywhere.GestureAnywhereSettings"
 android:name=".gestures.gestureanywhere.GestureAnywhereSettings"```
 ---
+Enter directory and archive all subdirs only
+
+```bash
+for j in */; do
+	pushd .
+	cd "$j";
+	for i in */; do rar a "${i%/}.rar" "$i" -m0 -r & done; wait
+	popd
+done
+```
