@@ -43,6 +43,7 @@ done
 
 ## Backup the rootfs of Ubuntu 18.04 with Multi-Threaded compression (Requires pxz).
 ```bash
+# This may be useful: https://github.com/azuer88/grub-mkconfig_lib-patch
 XZ_OPT=-9 tar -I pxz -cp \
 --exclude=/backup.txz.gpg \
 --exclude=/proc \
