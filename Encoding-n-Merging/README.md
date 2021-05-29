@@ -70,4 +70,7 @@ In this case, the tracks will be ordered as:
 ffmpeg -i "$i.mkv" -i "$i.srt" -map 0:v -map 0:a -map 1:s -map 0:t? -map_metadata 0 -map_chapters 0 -c copy -copy_unknown "remux_$i.mkv"
 rm "$i.mkv" "$i.srt"
 ```
-
+### Set the timestamp of a video file based on the filename
+```bash
+for i in *.mp4; do j="${i%.mp4}"; TIME=$(echo $j | sed "s/VID_//g;" | sed "s/_//g;" ) ; TIME="${TIME::-2}"; touch -mt $TIME $i ; done
+```
