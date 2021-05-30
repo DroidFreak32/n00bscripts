@@ -27,7 +27,7 @@ screen -d -m <yourcommand>
 status:merged -project:^LineageOS/android_device.+  -project:^LineageOS/android_kernel.+
 ```
 ---
-### RAR Archive folders with password in background:
+#### RAR Archive folders with password in background:
 ```bash
 for i in *NEF; do screen -d -m rar a -p'password' ~/Pictures/"$i.rar" -m0 -v500M -r "$i"/* ; done
 ```
