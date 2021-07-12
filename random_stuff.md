@@ -32,3 +32,8 @@ status:merged -project:^LineageOS/android_device.+  -project:^LineageOS/android_
 for i in *NEF; do screen -d -m rar a -p'password' ~/Pictures/"$i.rar" -m0 -v500M -r "$i"/* ; done
 ```
 ---
+#### [`find` multiple matching names using OR operation and exec a command](https://unix.stackexchange.com/a/50613)
+```bash
+find . -type f \( -name "*REAL*" -o -name "*FAKE*" -o -name "*mp3" \) -exec basename {} \;
+```
+---
