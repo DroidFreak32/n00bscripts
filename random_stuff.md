@@ -1,4 +1,4 @@
-## There are just few simple shell I keep forgetting. Hopefully I don't get lazy to update this file after I google the things I need.
+## There are just few simple shell 1-liners I keep forgetting. Hopefully I don't get lazy to update this file after I google the things I need.
 
 #### `find` and empty the contents of files:
 
@@ -6,13 +6,14 @@
 find . -type f -exec truncate -s 0 {} \;
 ```
 ---
-#### Take each line from a text file as an input (useful if you redirect the o/p of a find result to a file.
+#### Take each line from a text file as an input (useful if you redirect the o/p of a find result to a file).
  - #### *This MAY NOT escape special characters!*
 ```bash
 while read p; do ls -al "$p" ; done < list.txt
 ```
 ---
 #### [Build AOSP without getting bullied by metalava](https://sx.ix5.org/info/building-android/#fnref:2)
+ - ##### *NOTE: Does not seem to work :(*
 ```bash
 WITHOUT_CHECK_API=true
 ```
@@ -35,5 +36,11 @@ for i in *NEF; do screen -d -m rar a -p'password' ~/Pictures/"$i.rar" -m0 -v500M
 #### [`find` multiple matching names using OR operation and exec a command](https://unix.stackexchange.com/a/50613)
 ```bash
 find . -type f \( -name "*REAL*" -o -name "*FAKE*" -o -name "*mp3" \) -exec basename {} \;
+```
+---
+#### `find` above and create replica dir structure from the result
+ - ##### *Not tested against specal characters*
+```bash
+ find . -type f \( -name "*REAL*" -o -name "*FAKE*" -o -name "*mp3" \) -exec dirname {} \; | xargs -I {} bash -c 'mkdir -p ./FAKES/"{}"'
 ```
 ---
