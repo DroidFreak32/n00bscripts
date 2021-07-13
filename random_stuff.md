@@ -44,3 +44,8 @@ find . -type f \( -name "*REAL*" -o -name "*FAKE*" -o -name "*mp3" \) -exec base
  find . -type f \( -name "*REAL*" -o -name "*FAKE*" -o -name "*mp3" \) -exec dirname {} \; | xargs -I {} bash -c 'mkdir -p ./FAKES/"{}"'
 ```
 ---
+### [`find` Directory structure as CSV](https://stackoverflow.com/a/58606757)
+```bash
+find . -maxdepth 3 | sed 's:./::;s:/:,:g' > file.csv
+```
+---
