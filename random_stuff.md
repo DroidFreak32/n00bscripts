@@ -46,6 +46,6 @@ find . -type f \( -name "*REAL*" -o -name "*FAKE*" -o -name "*mp3" \) -exec base
 ---
 ### [`find` Directory structure as CSV](https://stackoverflow.com/a/58606757)
 ```bash
-find . -maxdepth 3 | sed 's:./::;s:/:,:g' > file.csv
+find . -maxdepth 2 -mindepth 2 -type d | sort | sed 's:./::;s:/:",":;s:^:":;s:$:":g;' > file.csv
 ```
 ---
