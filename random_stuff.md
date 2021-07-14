@@ -49,3 +49,7 @@ find . -type f \( -name "*REAL*" -o -name "*FAKE*" -o -name "*mp3" \) -exec base
 find . -maxdepth 2 -mindepth 2 -type d | sort | sed 's:./::;s:/:",":;s:^:":;s:$:":g;' > file.csv
 ```
 ---
+### [`sed` - Convert synced LRC to unsynced LRC](https://unix.stackexchange.com/a/187894/261206)
+```bash
+sed -r -i 's/^\[(.*)\]//' "$FILE"
+```
