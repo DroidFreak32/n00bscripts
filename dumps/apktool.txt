@@ -1,0 +1,59 @@
+  175  cd apktool
+  180  apktool d com.jio.myjio.apk
+  190  cd tmp/apktool
+  229  cd apktool
+  250  apktool b com.jio.myjio -o jio__unsigned.apk
+  253  apktool -r d com.jio.myjio.apk
+  259  apktool b com.jio.myjio -o jio__unsigned.apk
+  272  cp build/target/product/security/platform.* apktool
+  276  apktool b com.jio.myjio -o jio__unsigned.apk
+  312  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk
+  315  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk
+  317  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk
+  319  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk
+  321  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk
+  323  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk
+  325  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk
+  327  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk; adb install jio_signed.apk
+  330  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk; adb install jio_signed.apk
+  337  apktool -r d com.jio.myjio.apk
+  409  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk; adb install jio_signed.apk
+  411  apktool -r d jio_signed.apk
+  420  apktool -r -d hdfc.apk
+  421  apktool -r d hdfc.apk
+  453  apktool b hdfc -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  467  apktool b hdfc -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  477  apktool -r d hdfc.apk
+  478  apktool b hdfc -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  486  apktool -r --only-main-classes d hdfc.apk
+  489  apktool -r --only-main-classes d hdfc.apk
+  490  apktool b hdfc -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  493  scp hdfc.apk Jenkins:/home/rushab/apktool/
+  495  scp 0001-* Jenkins:/home/rushab/apktool/
+  496  scp platform.* Jenkins:/home/rushab/apktool/
+  497  scp signapk.jar Jenkins:/home/rushab/apktool/
+  498  apktool b hdfc -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  499  scp my-release-key.keystore Jenkins:/home/rushab/apktool/
+  506  which apktool
+  507  brew update apktool
+  508  brew upgrade apktool
+  512  apktool -r --no-assets  --only-main-classes d hdfc.apk
+  514  apktool -r --no-assets  --only-main-classes d hdfc.apk
+  515  apktool --use-aapt2 b hdfc -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  516  apktool b hdfc --use-aapt2 -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  517  apktool d -r --no-assets -s hdfc.apk
+  519  apktool d -r --no-assets -s hdfc.apk
+  521  apktool b hdfc --use-aapt2 -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+  522  apktool b hdfc -o hdfc_unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 hdfc_unsigned.apk hdfc_signed.apk; adb install hdfc_signed.apk
+ 2994  cd apktool
+ 3001  apktool d com.jio.myjio.apk
+ 3035  cd tmp/apktool
+ 3046  apktool d -r --no-assets -s com.jio.myjio.apk
+ 3054  apktool d -r com.jio.myjio.apk
+ 3091  apktool d -r com.jio.myjio.apk -o jio
+ 3141  cd tmp/apktool
+ 3146  apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk; adb install jio_signed.apk
+ 3155  echo "apktool b com.jio.myjio -o jio__unsigned.apk; java -jar signapk.jar platform.x509.pem platform.pk8 jio__unsigned.apk jio_signed.apk; adb install jio_signed.apk" >> README.md
+ 5882  apktool d -r Settings.apk
+ 7508  adb pull /sdcard/APK/base.apk ~/tmp/apktool
+ 7509  cd ~/tmp/apktool
