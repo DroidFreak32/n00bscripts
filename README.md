@@ -88,4 +88,12 @@ do
     touch -c -t "$TIMESTAMP" $i
     ls -l $i
 done
+```
 
+## ADB - recursively scan media from file list
+```bash
+for i in $(cat /sdcard/WAIMAGES.txt)
+do
+    am broadcast -a "android.intent.action.MEDIA_SCANNER_SCAN_FILE" -d file://"$PWD/$i" ;
+done
+```
