@@ -75,3 +75,17 @@ for i in /dev /dev/pts /proc /sys /run; do sudo mount -B $i /mnt$i; done
 chroot /mnt
 grub-install /dev/sda
 ```
+
+## Modify Media file timestamps from the names
+#### Must be of format IMG-YYYYMMDD-randomtext.jpg"
+```bash
+find . -type f -name "IMG-201*" > /sdcard/WAIMAGES.txt
+
+
+for i in $(cat /sdcard/WAIMAGES.txt)
+do
+    TIMESTAMP="$(echo $i | awk -F '-' '{print $2}')";
+    touch -c -t "$TIMESTAMP" $i
+    ls -l $i
+done
+
