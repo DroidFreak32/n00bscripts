@@ -89,6 +89,17 @@ do
     ls -l $i
 done
 ```
+####  This is for format IMG_20190629_142823_662.jpg used by telegram
+```bash
+for i in $(cat /sdcard/tg.txt)
+do
+    TIMESTAMP="$(echo $i | awk -F '_' '{print $2$3$4}')";
+    TIMESTAMP="${TIMESTAMP::-4}" # Remove extension
+    touch -c -t "${TIMESTAMP:0:12}.${TIMESTAMP:12}" $i
+    ls -l $i
+done
+```
+
 
 ## ADB - recursively scan media from file list
 ```bash
