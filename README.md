@@ -79,7 +79,7 @@ grub-install /dev/sda
 ## Modify Media file timestamps from the names
 #### Must be of format IMG-YYYYMMDD-randomtext.jpg"
 ```bash
-for i in "$(find . -type f -name "*201*")"
+for i in "$(cat /sdcard/WAIMAGES.txt)"
 do
     TIMESTAMP="$(echo $i | awk -F '-' '{print $2}')";
     touch -c -t "$TIMESTAMP" $i
@@ -88,7 +88,8 @@ done
 ```
 ####  This is for format IMG_20190629_142823_662.jpg used by telegram
 ```bash
-for i in "$(find . -type f -name "*201*")"
+find . -type f -name "*201*" > /sdcard/tg.txt
+for i in "$(cat /sdcard/tg.txt)"
 do
     TIMESTAMP="$(echo $i | awk -F '_' '{print $2$3$4}')";
     TIMESTAMP="${TIMESTAMP::-4}" # Remove extension
