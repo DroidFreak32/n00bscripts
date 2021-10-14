@@ -106,3 +106,8 @@ do
     am broadcast -a "android.intent.action.MEDIA_SCANNER_SCAN_FILE" -d file://"$PWD/$i" ;
 done
 ```
+
+## RSync - Sync sdcard to PC, remove deleted items in target
+```bash
+rsync -av --recursive -P --dry-run -e "ssh -i /data/ssh/ssh_host_rsa_key" /sdcard/ username@IP:~/Android/sdcard --delete
+```
