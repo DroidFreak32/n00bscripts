@@ -53,7 +53,7 @@ find . -maxdepth 2 -mindepth 2 -type d | sort | sed 's:./::;s:/:",":;s:^:":;s:$:
 ```bash
 sed -r -i 's/^\[(.*)\]//' "$FILE"
 ```
-
+---
 ### [RegEx to match duplicate lines](https://stackoverflow.com/questions/1573361)
 ```bash
 ^(.*)(\r?\n\1)+$
