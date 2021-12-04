@@ -1,4 +1,4 @@
-# n00bscripts - All about mkvmerge & ffmpeg
+# n00bscripts - All about mkvmerge & ffmpeg & misc Media org stuff
 
 ### Loop template
 ```bash
@@ -73,4 +73,13 @@ rm "$i.mkv" "$i.srt"
 ### Set the timestamp of a video file based on the filename
 ```bash
 for i in *.mp4; do j="${i%.mp4}"; TIME=$(echo $j | sed "s/VID_//g;" | sed "s/_//g;" ) ; TIME="${TIME::-2}"; touch -mt $TIME $i ; done
+```
+
+### [ReNamer](https://www.den4b.com/products/renamer) rules for Music filename formatting
+```text
+1) Replace: Replace using wildcards " A " with " a ", " An " with " an ", " The " with " the ", " And " with " and ", " But " with " but ", " Or " with " or ", " On " with " on ", " Nor " with " nor ", " For " with " for ", " From " with " from ", " Yet " with " yet ", " So " with " so ", " As " with " as ", " At " with " at ", " By " with " by ", " In " with " in ", " Of " with " of ", " To " with " to ", " (Album Version)" with "", " (Non-Album Track)" with "", " (Album Version Explicit)" with "", " (Remastered)" with "", ") (Live)" with ")", " Ta " with " ta " (skip extension) (case sensitive)
+2) Replace: Replace using wildcards " - t" with " - T", " - i" with " - I", "& t" with "& T", " - a" with " - A", "Come on" with "Come On", "- s" with "- S", "- o" with "- O", "- f" with "- F", "- b" with "- B", "- y" with "- Y" (skip extension) (case sensitive)
+3) Remove: Remove using wildcards "Pink Floyd - " (skip extension)
+4) Replace: Replace all "[" with "(", "]" with ")", "_" with "" (skip extension)
+5) Insert: Insert "Pink Floyd - " as Prefix (skip extension)
 ```
