@@ -58,3 +58,13 @@ sed -r -i 's/^\[(.*)\]//' "$FILE"
 ```bash
 ^(.*)(\r?\n\1)+$
 ```
+
+### Substitute find result as argument in a command and run it in background
+```bash
+find -iname "*flac" -exec ls -Q {} \; | sed 's/$/ \&/; s/^/md5sum /' > ~/tmp/bg_tasks.sh
+```
+
+### [And then run 10 threads, wait for it to finish, run 10 more.](https://stackoverflow.com/questions/356100/how-to-wait-in-bash-for-several-subprocesses-to-finish-and-return-exit-code-0)
+```bash
+ sed '0~10 s/$/\nwait\necho WAITING.../' < bg_tasks.sh > waiting_tasks.sh
+```
