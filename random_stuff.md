@@ -68,3 +68,8 @@ find -iname "*flac" -exec ls -Q {} \; | sed 's/$/ \&/; s/^/md5sum /' > ~/tmp/bg_
 ```bash
  sed '0~10 s/$/\nwait\necho WAITING.../' < bg_tasks.sh > waiting_tasks.sh
 ```
+---
+###[Find & display only files that do not have lyrics](https://stackoverflow.com/questions/23740545/how-to-print-only-the-unique-lines-in-bash)
+```
+for i in $(find \( -name "*lrc" -o -name "*flac" \) -exec basename {} \; ); do echo "${i%.*}" ; done | sort | uniq -u
+```
