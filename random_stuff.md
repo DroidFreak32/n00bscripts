@@ -73,3 +73,9 @@ find -iname "*flac" -exec ls -Q {} \; | sed 's/$/ \&/; s/^/md5sum /' > ~/tmp/bg_
 ```
 for i in $(find \( -name "*lrc" -o -name "*flac" \) -exec basename {} \; ); do echo "${i%.*}" ; done | sort | uniq -u
 ```
+---
+
+### AWK - Netstat - Print time and connections
+```bash
+awk -F '[[:space:]][[:space:]]+' ' $1~/TIMEST/ { print } { print $5 }' /tmp/netstat_connections.txt | head
+```
