@@ -75,7 +75,7 @@ for i in $(find \( -name "*lrc" -o -name "*flac" \) -exec basename {} \; ); do e
 ```
 ---
 
-### [AWK - Netstat - Print time and connections] (https://stackoverflow.com/questions/17001849/awk-partly-string-match-if-column-word-partly-matches)
+### [AWK - Netstat - Print time and connections](https://stackoverflow.com/questions/17001849/awk-partly-string-match-if-column-word-partly-matches)
 ```bash
 awk -F '[[:space:]][[:space:]]+' ' $1~/TIMEST/ { print } { print $5 }' /tmp/netstat_connections.txt | head
 ```
