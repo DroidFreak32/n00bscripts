@@ -79,3 +79,13 @@ for i in $(find \( -name "*lrc" -o -name "*flac" \) -exec basename {} \; ); do e
 ```bash
 awk -F '[[:space:]][[:space:]]+' ' $1~/TIMEST/ { print } { print $5 }' /tmp/netstat_connections.txt | head
 ```
+### [Regex match all language characters, but stop at 2nd occurrance of tab](https://stackoverflow.com/questions/2013124/regex-matching-up-to-the-first-occurrence-of-a-character)
+```perl
+^(ID|[0-9]+)\t+([\x00-\x7F]|[^\x00-\x7F])(.*?)\t
+
+Example:
+ID			artist	title	error
+91092377	Seether	I've Got You Under My Skin	Your account can't stream the track from your current country and no alternative found.
+
+Matches till BEFORE the TITLE column 
+```
