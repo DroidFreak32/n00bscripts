@@ -79,6 +79,8 @@ for i in $(find \( -name "*lrc" -o -name "*flac" \) -exec basename {} \; ); do e
 ```bash
 awk -F '[[:space:]][[:space:]]+' ' $1~/TIMEST/ { print } { print $5 }' /tmp/netstat_connections.txt | head
 ```
+---
+
 ### [Regex match all language characters, but stop at 2nd occurrance of tab](https://stackoverflow.com/questions/2013124/regex-matching-up-to-the-first-occurrence-of-a-character)
 ```perl
 ^(ID|[0-9]+)\t+([\x00-\x7F]|[^\x00-\x7F])(.*?)\t
@@ -89,3 +91,10 @@ ID			artist	title	error
 
 Matches till BEFORE the TITLE column 
 ```
+---
+
+### NX Tar extract manually collected bundles and strip unnecesarry folders:
+```bash
+for i in *tar.gz; do j="${i%.tar.gz}"; mkdir $j; tar -C $j -xf $i --strip-components=4; done
+```
+---
