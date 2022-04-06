@@ -98,3 +98,9 @@ Matches till BEFORE the TITLE column
 for i in *tar.gz; do j="${i%.tar.gz}"; mkdir $j; tar -C $j -xf $i --strip-components=4; done
 ```
 ---
+
+### [Print all lines after matched pattern](https://stackoverflow.com/questions/5346896/print-everything-on-line-after-match)
+```bash
+cat wg0.conf | awk '/### begin/ {seen = 1}
+     seen            {print}'
+```
