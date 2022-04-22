@@ -6,4 +6,4 @@ https://github.com/crdroidandroid/android_frameworks_base/blob/8fcf14a3d6d08539d
 - [ ] smartbattery
 - [ ] Custom Headers
 - [ ] CRT turnoff
-- [ ] 
+- [ ] App similar to crdroidsettings
