@@ -8,4 +8,5 @@ https://github.com/crdroidandroid/android_frameworks_base/blob/8fcf14a3d6d08539d
 - [ ] CRT turnoff
 - [ ] App similar to crdroidsettings
 - [ ] Battery page changes https://github.com/crdroidandroid/android_packages_apps_Settings/commits/11.0/src/com/android/settings/fuelgauge
+- [ ] Remove redundant stuffs from lineageparts
 - [ ] 
