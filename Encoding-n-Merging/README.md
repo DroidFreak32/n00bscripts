@@ -83,3 +83,8 @@ for i in *.mp4; do j="${i%.mp4}"; TIME=$(echo $j | sed "s/VID_//g;" | sed "s/_//
 4) Replace: Replace all "[" with "(", "]" with ")", "_" with "" (skip extension)
 5) Insert: Insert "Pink Floyd - " as Prefix (skip extension)
 ```
+### Remove excessive padding from flac files
+```bash
+ find . -type f -name "*flac" -exec metaflac --sort-padding {} \;
+ find . -type f -name "*flac" -exec metaflac --remove --block-type=PADDING --dont-use-padding {} \;
+```
