@@ -103,3 +103,9 @@ for i in *tar.gz; do j="${i%.tar.gz}"; mkdir $j; tar -C $j -xf $i --strip-compon
 ```bash
 awk '/### begin/ {seen = 1} seen {print}' wg0.conf
 ```
+---
+### [AWK - Print first column after all other columns](https://stackoverflow.com/a/4198169/6437140)
+```bash
+$ git log --oneline COMMIT~1..COMMIT | awk '{first = $1; $1 = ""; print $0, first; }'
+ <COMMITmessage> <commitsha>
+```
