@@ -9,3 +9,7 @@ git log --oneline  github/lineage-19.1..HEAD | awk '{first = $1; $1 = ""; print 
 git log --oneline  github/lineage-19.1..<diffrepo> | awk '{first = $1; $1 = ""; print $0, "#", first; }'
 # Remove known misses, sort both, send to diffchecker
 ```
+### Find changeIDs that are duplicates
+```bash
+git log <commit>..HEAD | grep Change-Id | awk '{print $2}' | sort | uniq -d
+```
