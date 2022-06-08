@@ -1,4 +1,61 @@
-# n00bscripts
+# n00bscripts & configs
+
+## WireGuard config to "split-tunnel" into a VPN,
+
+Within your VPN-provider's WireGuard config you need to make a couple of changes Inside `[Interface]` Section.  
+I named it wg-vpn.conf
+
+```ini
+[Interface]
+# Prevent WireGuard from creating any routing tables.
+# You definitely don't want your existing PiHole users to go get access to this VPN
+Table = off
+
+# Create a new Routing table specific to clients connecting to VPN
+PostUp = ip route add default dev wg-vpn table 1337
+PreDown = ip route del default dev wg-vpn table 1337
+```
+
+Then you need to create a new WireGuard "bridge" interface config.  
+This cannot be your DNS-only/PiHole interface because it would then depend on `wg-vpn` interface to be always up.
+
+I have set up my bridge interface like so:
+
+```ini
+[Interface]
+Address = <NEW SUBNET (10.10.0.1/24)>
+ListenPort = <PORT>
+PrivateKey = <NEW PRIVATE KEY>
+Table = off
+
+# Start the VPN interface
+PreUp = wg-quick up wg-vpn
+# Use the VPN interface for all traffic
+PostUp = iptables -w -t nat -A POSTROUTING -o wg-vpn -j MASQUERADE ; ip6tables -w -t nat -A POSTROUTING -o wg-vpn -j MASQUERADE
+
+# All packets from this "bridge" should use our custom routing table using the VPN
+PostUp = ip rule add from 10.10.0.0/24 lookup 1337
+# Make this subnet reachable through this interface for all incoming packets from VPN
+PostUp = ip route add 10.10.0.0/24 dev %i table 1337
+
+# Cleanup
+PreDown = ip rule del from 10.10.0.0/24 lookup 1337
+PostDown = iptables -w -t nat -D POSTROUTING -o wg-vpn -j MASQUERADE; ip6tables -w -t nat -D POSTROUTING -o wg-vpn -j MASQUERADE
+PostDown = wg-quick down wg-vpn
+
+# oneplus8t-rushab
+[Peer]
+PublicKey = <PUB>
+PresharedKey = <PSK>
+AllowedIPs = 10.10.0.2/32
+```
+TODO:
+- Figure out why the main routing table contains bridge0 route despite Table = off
+- Implement Firewall to block anything outside this network
+- Figure out fwmask
+
+---
+
 ## Replace text from files
 ```bash
 perl -pi -w -e 's/<OLD>/<NEW>/g;' <filename>
