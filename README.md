@@ -160,6 +160,23 @@ done
 ```bash
 find /sdcard/ -type f -iname "*.flac" |sed -e "s|^|am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE' -d file://\"|g;" -e "s|$|\"|g;"| source /dev/stdin
 ```
+```text
+Explanation:
+1) find /sdcard/ -type f -iname "*.flac" 
+ - Prints all the matched files.
+
+2) sed -e "s|^|am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE' 
+ - Replaces the start of each `find` result with
+ am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE'
+ - -d file://\"|g;" Then adds a " at the end of file:// to complete the string as:
+ am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE' -d file://"
+ 
+3)  -e "s|$|\"|g;"
+ - appends " at the end of the output to close the " in step 2
+
+4) | source /dev/stdin
+ - Executes the output as a command
+```
 
 ## RSync - Sync sdcard & PC, remove deleted items in target
  - Phone to PC
