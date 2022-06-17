@@ -156,12 +156,9 @@ done
 ```
 
 
-## ADB - recursively scan media from file list
+## ADB - recursively scan media from [find result](https://stackoverflow.com/questions/1279953/how-to-execute-the-output-of-a-command-within-the-current-shell)
 ```bash
-for i in $(cat /sdcard/WAIMAGES.txt)
-do
-    am broadcast -a "android.intent.action.MEDIA_SCANNER_SCAN_FILE" -d file://"$PWD/$i" ;
-done
+find /sdcard/ -type f -iname "*.flac" |sed -e "s|^|am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE' -d file://\"|g;" -e "s|$|\"|g;"| source /dev/stdin
 ```
 
 ## RSync - Sync sdcard & PC, remove deleted items in target
