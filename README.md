@@ -8,7 +8,7 @@ I named it wg-vpn.conf
 ```ini
 [Interface]
 # Prevent WireGuard from creating any routing tables.
-# You definitely don't want your existing PiHole users to go get access to this VPN
+# You definitely don't want your existing PiHole users to get access to this VPN
 Table = off
 
 # Create a new Routing table specific to clients connecting to VPN
@@ -54,6 +54,29 @@ TODO:
 - Implement Firewall to block anything outside this network
 - Figure out fwmask
 
+##### bonus config for *enterprise* VPN:
+```ini
+[Interface]
+PrivateKey = 
+Address = hh.hh.hh.1/24,hx:hx:hx:h112::1/112
+MTU = 1420
+ListenPort = PORT
+Table = off
+
+# Use the VPN interface for all traffic
+PostUp = iptables -w -t nat -A POSTROUTING -s hh.hh.hh.0/24 -o work_tun -j MASQUERADE ; ip6tables -w -t nat -A POSTROUTING -o work_tun -j MASQUERADE
+# Cleanup
+PostDown = iptables -w -t nat -D POSTROUTING -s hh.hh.hh.0/24 -o work_tun -j MASQUERADE; ip6tables -w -t nat -D POSTROUTING -o work_tun -j MASQUERADE
+####### Interface END #######
+
+
+### begin Rushab8T-Work ###
+[Peer]
+PublicKey = 
+PresharedKey = 
+AllowedIPs = hh.hh.hh.3/32,hx:hx:hx:h112::3/128
+### end Rushab8T-Work ###
+```
 ---
 
 ## Replace text from files
