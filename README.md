@@ -52,7 +52,7 @@ AllowedIPs = 10.10.0.2/32
 TODO:
 - Figure out why the main routing table contains bridge0 route despite Table = off
 - Implement Firewall to block anything outside this network
-- Figure out fwmask
+- Figure out fwmask ([tldr](https://datahacker.blog/industry/technology-menu/networking/routes-and-rules/iproute-and-routing-tables))
 
 ##### bonus config for *enterprise* VPN:
 ```ini
