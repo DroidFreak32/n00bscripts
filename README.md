@@ -323,3 +323,10 @@ awk '/### begin/ {seen = 1} seen {print}' wg0.conf
 $ git log --oneline COMMIT~1..COMMIT | awk '{first = $1; $1 = ""; print $0, first; }'
  <COMMITmessage> <commitsha>
 ```
+---
+#### [Log to journald](https://serverfault.com/a/573951/535443)
+```bash
+echo 'hello' | systemd-cat -t someapp -p emerg
+# Logged as
+Feb 07 13:48:56 localhost.localdomain someapp[15278]: hello
+```
