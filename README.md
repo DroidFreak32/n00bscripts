@@ -199,6 +199,16 @@ WantedBy=timers.target
 ```
 5) Enable timer  `sudo systemctl enable unbound-resolvconf.timer`
 
+6) Remove redundant configs from Pihole as per [this](https://www.reddit.com/r/pihole/comments/d9j1z6/unbound_as_recursive_dns_server_slow_performance/f1jnuq1/) reddit post:
+```
+# /etc/unbound/unbound.conf.d/pi-hole.conf
+    cache-min-ttl: 0
+    serve-expired: yes
+# /etc/dnsmasq.d/01-pihole.conf
+cache-size=0
+```
+
+
 ## Pi-Hole modifications
 ### <s>Restricting access outside LAN
 Added the following in `/etc/lighttpd/lighttpd.conf`</s>
