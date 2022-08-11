@@ -239,6 +239,87 @@ Use `iptables` to block connections outside LAN `/etc/iptables/rules.v4`:
 -A INPUT -p tcp -m multiport --dports 22,53,80,443,5900 -j REJECT --reject-with tcp-reset
 COMMIT
 ```
+___
+## Load balancing multiple internet connections over a single NIC with help of [dispatch-proxy](https://github.com/alexkirsz/dispatch)
+#### My Setup
+Home LAN: `192.168.1.0/24`  
+ISP Gateway (`RT`): `192.168.1.1/24`  
+Raspberry Pi (`RPi`): `192.168.1.2/24` (Static with no default gateway)  
+My Laptop (`LPt`): `192.168.1.100/24` (DHCP)  
+
+I have my ISP FTTH router (`RT`) set to PPPoE passthrough mode which lets any one LAN device also send PPP requests.  
+This lets me have my Raspberry Pi - connected to `RT`'s LAN at `192.168.1.2` - send PPP requests and have its own PPP connection:
+```
+<WAN1> <WAN2>
+    |    |
+    |    `-RT - <PPP Public IP 1>
+    |      `-br_lan - 192.168.1.1/24
+    |        `-LPt
+    |          `-eth0 - 192.168.1.100/24 (default gateway: 192.168.1.1)
+    |        `-RPi 
+    |          `-eth0 - 192.168.1.2/24 (default gateway: ppp0)
+    `------------`-ppp0 - <PPP PUBLIC IP 2>
+```
+Note: `ppp0` can be any of your internet facing interface (`eth1`/`wlan0` etc)
+
+By design, each network can only have 1 default gateway.  
+However, in my case I am able to access the internet from both `RT` and `rPI` which are both under the `192.168.1.0/24` network.
+`LPt` by default can only access internet through `RT`
+
+To overcome this, we can make use of a new subnet `192.168.2.0/24` + a new routing table `100` + routing rules to use table `100` for `192.168.2.0/24`.
+```
+`-LPt
+  `-eth0 - 192.168.1.100/24 (default gateway: 192.168.1.1, rt_table=main)
+         - 192.168.2.100/24 (default gateway: 192.168.2.2, rt_table=100) *** New subnet ***
+`-RPi 
+  `-eth0 - 192.168.1.2/24 (default gateway: ppp0)
+         - 192.168.2.2/24 (default gateway: ppp0 through NAT) *** New subnet ***
+```
+First, setup an additional subnet within `RPi` and `LPt` only.
+`LPt` & `RPi`:
+```
+# Add a new address
+ncli connection modify Ethernet +ipv4.addresses "192.168.2.100/24"
+# Or use: ip addr add "192.168.2.2/24" dev eth0
+```
+Next, on `LPi` add a default route via `RPi` on a separate routing table `100`
+```
+# Add additional default routes in separate tables
+nmcli connection modify Ethernet +ipv4.routes "0.0.0.0/0 192.168.2.2 table=100"
+# ip route add default via 192.168.2.2 table 100
+```
+Next, create a rule on `LPi` for all packets in `192.168.2.0/24` to use routing table `100`
+```
+# Add custom routing rules
+nmcli connection modify Ethernet +ipv4.routing-rules "priority 100 from 192.168.2.0/24 table 100"
+# ip rule from 192.168.2.0/24 table 100 priority 100
+```
+Next, on `RPi`, we need to `MASQUERADE` all incoming packets from `192.168.2.0/24` to `192.168.1.2` inorder to get out through `ppp0`.
+```
+sudo iptables -t nat -A POSTROUTING -s 192.168.2.0/24 -o ppp0 -j MASQUERADE
+```
+With this, we now have 2 separate routes a packet from `LPt` can go through.
+The route is decided based on the source IP. `192.168.1.x` goes through `RT` whereas `192.168.2.x` goes through `RPi`
+If you now go to https://ipleak.net and run their `Torrent Address detection` you should be seeing 2 Public IPs.
+However, not all apps can make use of this. Almost everything will still go out with source address `192.168.1.x`
+
+This is where [dispatch-proxy](https://github.com/alexkirsz/dispatch) comes in.
+1. Run `dispatch list`.
+```
+╔════════╦═══════════════╗
+║  eth0  ║ 192.168.1.100 ║
+║        ║ 192.168.2.100 ║
+╚════════╩═══════════════╝
+```
+2. Start the proxy `dispatch start 192.168.1.100 192.168.2.100`
+3. Run `curl -x socks5h://localhost:1080 ifconfig.me` multiple times to verify your Public IP is changing.
+4. On any app/browser that supports SOCKS5 Proxy, use 127.0.0.1:1080
+
+### Additional ideas:
+- It may not have to even be on a separate subnet, we could probably just add a new address in existing subnet set a rule just for the new IP
+- These rules could be implemented on `RPi` itself and the Proxy exposed to lan. So any device in LAN will be able leverage the speeds just by setting a system-wide proxy.
+___
+
 
 ## WireGuard config to "split-tunnel" into a VPN,
 
