@@ -651,3 +651,26 @@ echo 'hello' | systemd-cat -t someapp -p emerg
 # Logged as
 Feb 07 13:48:56 localhost.localdomain someapp[15278]: hello
 ```
+---
+#### [Remove Zsh duplicate history](https://www.quora.com/How-do-I-remove-duplicates-and-sort-entries-in-zsh-history)
+```bash
+cat -n .zsh_history | sort -t ';' -uk2 | sort -nk1 | cut -f2- > .zsh_short_history
+
+mv .zsh_short_history .zsh_history
+
+Explanation
+
+(1) add line number column to keep track of order: cat -n .zsh_history
+
+(2) sort by command and keep unique commands only: sort -t ';' -uk2
+
+note: need to set ';' as the sort delimeter because of zshell datetime stamp
+
+(3) sort now by the line number added before: sort -nk1
+
+(4) remove line number column added in the first step: cut -f2-
+
+(5) save under new file: > .zsh_short_history
+
+(6) replace zshell history file: mv .zsh_short_history .zsh_history
+```
