@@ -1,11 +1,101 @@
 # n00bscripts & configs
 
-# Pi-Hole setup
+### Zephyrus G15 2021 Linux Mods
 
-# Description
+#### Enable SysRq support
+
+Credits: [ASUS-Linux](https://asus-linux.org/faq/#mic-mute-doesn-t-work) & [foell](https://www.foell.org/justin/remapping-keyboard-keys-in-ubuntu-with-udev-evdev)
+
+1) **Note down the keyboard IDs using `ls -l /dev/input/by-id/usb-ASUSTeK*`**
+ ```bash
+ ❯ ls -al /dev/input/by-id/usb-ASUSTeK*
+lrwxrwxrwx 1 root root 9 Sep 10 22:32 /dev/input/by-id/usb-ASUSTeK_Computer_Inc._N-KEY_Device-event-if00 -> ../event7
+lrwxrwxrwx 1 root root 9 Sep 10 22:32 /dev/input/by-id/usb-ASUSTeK_Computer_Inc._N-KEY_Device-if02-event-kbd -> ../event6
+```
+The one ending with `if02-event-kbd` corresponds to the generic keys (qwerty, fn1-fn12, esc, delete etc).  
+Whereas the other one corresponds to the secondary actions (VOL_UP, VOL_DOWN, MIC_MUTE, all fn+<key> combos)  
+
+It is on you to decide which key you'd like to remap to SysRq.  
+
+In my case, I will choose the `menu` key (`fn+RightCtrl`) as SysRq <-> `event7` above
+
+
+2) **Get the details of `Asus Keyboard` using `evemu-describe`. You may see multiple entries but for this step any one will work, for ex below it is event`6`**
+
+```bash
+❯ evemu-describe
+Available devices:
+/dev/input/event0:      Lid Switch
+/dev/input/event1:      Power Button
+/dev/input/event2:      Sleep Button
+/dev/input/event3:      Video Bus
+/dev/input/event4:      Asus Wireless Radio Control
+/dev/input/event5:      LogiOps Virtual Input
+/dev/input/event6:      Asus Keyboard
+/dev/input/event7:      Asus Keyboard
+...
+Select the device event number [0-26]: 6
+```
+
+3) **Enter the ID in the prompt and take a note of the Properties lines:**
+
+```bash
+...
+# Properties:
+N: Asus Keyboard
+I: 0003 0b05 19b6 0110
+...
+```
+The first three sections (in ALL CAPS) will be required later: `0003 0B05 19B6`  
+These are the `bus-id` `vendor-id` and `product-id` respectively.
+
+
+4) **Next, choose a key to remap and gather its KeyCode and `ScanCode` info.**
+ - Since I am using `fn+RightCtrl` I'll need to scan its key/scan code by listening on `event6`.
+ - If you want to choose another key (ex, the `AURA` key under `f4`) you'll have to listen to its events `event7`
+ - Use `evtest /dev/input/by-id/usb-ASUSTeK....` to start listening to the key/scan codes. The output in my case:
+```bash
+Properties:
+Testing ... (interrupt to exit)
+Event: time 1662833525.476492, type 4 (EV_MSC), code 4 (MSC_SCAN), value 70065
+Event: time 1662833525.476492, type 1 (EV_KEY), code 127 (KEY_COMPOSE), value 1
+Event: time 1662833525.476492, -------------- SYN_REPORT ------------
+Event: time 1662833525.577281, type 4 (EV_MSC), code 4 (MSC_SCAN), value 70065
+Event: time 1662833525.577281, type 1 (EV_KEY), code 127 (KEY_COMPOSE), value 0
+Event: time 1662833525.577281, -------------- SYN_REPORT ------------
+```
+From the output above, the `ScanCode` is `70065` and `KeyCode` is [`KEY_COMPOSE`](https://github.com/torvalds/linux/blob/v5.19/include/uapi/linux/input-event-codes.h#L204)  
+
+If using `AURA` key for ex, you'll have to run `evtest` on `usb-ASUSTeK..event-if00` and the output would be something like
+```bash
+Testing ... (interrupt to exit)
+Event: time 1662834149.898966, type 4 (EV_MSC), code 4 (MSC_SCAN), value ff3100b3
+Event: time 1662834149.898966, type 1 (EV_KEY), code 202 (KEY_PROG3), value 1
+Event: time 1662834149.898966, -------------- SYN_REPORT ------------
+```
+So in this case the `ScanCode` is `ff3100b3`, currently mapped to [`KEY_PROG3`](https://github.com/torvalds/linux/blob/v5.19/include/uapi/linux/input-event-codes.h#L279)
+
+
+5) **Create a udev `.hwdb` file to remap keys**
+ - Create a new file in `/etc/udev/hwdb.d/` ending with `.hwdb` with the following contents
+ - Substitute with your `KEYBOARD_KEY_<SCANCODE>`
+
+```
+❯ cat /etc/udev/hwdb.d/90-nkey.hwdb
+# Input device ID: bus 0003 vendor 0B05 product 19B6
+# evdev:input:b<bus_id>v<vendor_id>p<product_id>e<version_id>-<modalias>
+evdev:input:b0003v0B05p19B6*
+ KEYBOARD_KEY_70065=sysrq # force sysrq to fn+rightctrl
+```
+`sysrq` can be replaced with any keycode supported in this list: https://github.com/torvalds/linux/blob/v5.19/include/uapi/linux/input-event-codes.h
+
+---
+## Pi-Hole setup
+
+### Description
 These are my notes for future reference on how I setup my Raspberry Pi for my specific need at the time.
 
-## My needs
+#### My needs
 I want my Pi to act as
 
 1. A PiHole to block ads
