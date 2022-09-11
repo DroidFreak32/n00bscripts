@@ -764,3 +764,13 @@ note: need to set ';' as the sort delimeter because of zshell datetime stamp
 
 (6) replace zshell history file: mv .zsh_short_history .zsh_history
 ```
+#### [Simple C code to send keystrokes to current window using `xdotool`](https://stackoverflow.com/questions/1262310/simulate-keypress-in-a-linux-c-console-application)
+Useful to map a keyboard shortcut to type frequently used text like email addresses!
+```C
+#include <xdo.h>
+int main() {
+    xdo_t * x = xdo_new(":0.0");
+    xdo_enter_text_window(x, CURRENTWINDOW, "ThisIsAText", 0);
+    return 0;
+}
+```
