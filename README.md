@@ -773,4 +773,7 @@ int main() {
     xdo_enter_text_window(x, CURRENTWINDOW, "ThisIsAText", 0);
     return 0;
 }
+---
 ```
+#### ADB shell command to allow KDE Connect Notification Access
+`cmd notification allow_listener org.kde.kdeconnect_tp/org.kde.kdeconnect.Plugins.NotificationsPlugin.NotificationReceiver`
