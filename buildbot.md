@@ -13,3 +13,9 @@ git log --oneline  github/lineage-19.1..<diffrepo> | awk '{first = $1; $1 = ""; 
 ```bash
 git log <commit>..HEAD | grep Change-Id | awk '{print $2}' | sort | uniq -d
 ```
+### Gerrit - Batch restore all abandoned commits
+```
+#gerrit is aliased to 'ssh -p <port> user@gerrithost gerrit'
+gerrit query --current-patch-set  'status:abandoned' | egrep '^    revision' | awk '{print $2}' > CHANGES_NUMBERS
+for i in `cat CHANGES_NUMBERS`; do gerrit review --restore $i; done
+ ```
