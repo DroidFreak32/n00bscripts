@@ -23,3 +23,8 @@ for i in `cat CHANGES_NUMBERS`; do gerrit review --restore $i; done
 ```bash
 repo info . | grep Project | cut -d" " -f2
 ```
+### Gerrit: force create project and update branch baseline
+```
+gerrit create-project LineageOS/android_packages_modules_Connectivity
+git push lgerrit:`repoproj` HEAD:refs/heads/master -o skip-validation
+```
