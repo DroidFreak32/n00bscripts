@@ -27,4 +27,5 @@ repo info . | grep Project | cut -d" " -f2
 ```
 gerrit create-project LineageOS/android_packages_modules_Connectivity
 git push lgerrit:`repoproj` HEAD:refs/heads/master -o skip-validation
+gerrit create-branch `repoproj` lineage-19.1 ded73434a
 ```
