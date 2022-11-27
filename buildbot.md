@@ -2,6 +2,10 @@
 ```bash
 repo forall -g EXTRAS -c 'echo git remote add LineageOS git@github.com:$(echo ${REPO_PROJECT} | sed "s|ROM-EXTRAS|LineageOS|g;")'
 ```
+### Check current HEAD of custom repos
+```
+repo forall -v -g EXTRAS -c "git log --oneline | head -n1"
+```
 ### compare missing commits between repos
 
 ```bash
