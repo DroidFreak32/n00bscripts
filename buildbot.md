@@ -6,6 +6,11 @@ repo forall -g EXTRAS -c 'echo git remote add LineageOS git@github.com:$(echo ${
 ```
 repo forall -v -g EXTRAS -c "git log --oneline | head -n1"
 ```
+### Generate custom repos `project-list` array to use with `repo start/upload`
+```
+A=($(repo forall -g EXTRAS -c "echo \$REPO_PATH"))
+repo start lineage-19.1 "${A[@]}"
+```
 ### compare missing commits between repos
 
 ```bash
