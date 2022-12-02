@@ -9,7 +9,7 @@ repo forall -v -g EXTRAS -c "git log --oneline | head -n1"
 ### List of all repos not matching manifest branch
 ```
 repoheads () {
-    repo forall -pv -g EXTRAS -c "git log --oneline | head -n1" | grep -v github-ssh | grep HEAD -B1 |grep project | cut -d' ' -f2
+    repo forall -pv -g EXTRAS -c "git log --oneline | head -n1" | grep -v github-ssh/lineage-19.1 | grep HEAD -B1 |grep project | cut -d' ' -f2
 }
 # Now use a loop to so whatever is needed
 for i in $(repoheads); do git rebase -f github-ssh/lineage-19.1 --exec="git commit --amend --no-edit"
