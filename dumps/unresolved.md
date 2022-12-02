@@ -21,4 +21,4 @@ https://github.com/crdroidandroid/android_frameworks_base/blob/8fcf14a3d6d08539d
 - [ ] per-app volume
 - [ ] pulse notification on Ambient display
 - [ ] VPN on hotspot I4c6de1a2ac44f997da399d98c003bd21fe0cd0be
-- [ ] GMScompat https://gerrit.aicp-rom.com/c/AICP/frameworks_base/+/114150
+- [ ] GMScompat https://gerrit.aicp-rom.com/c/AICP/frameworks_base/+/114150 and https://github.com/AICP/frameworks_base/commits/s12.1/core/java/android/app/ActivityThread.java
