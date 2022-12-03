@@ -53,3 +53,37 @@ gerrit create-project LineageOS/android_packages_modules_Connectivity
 git push lgerrit:`repoproj` HEAD:refs/heads/master -o skip-validation
 gerrit create-branch `repoproj` lineage-19.1 ded73434a
 ```
+
+### Gerrit: Undo all merges in project
+```bash
+# 1) Query all current ref: refs/changes/xx/yy and save it to a temp file
+gerrit query --current-patch-set 'project:LineageOS/android_packages_apps_Settings status:merged' | egrep "^    ref:" | cut -d' ' -f6 >/tmp/CHANGES_NUMBERS
+
+# Example output
+# $ head /tmp/CHANGES_NUMBERS
+# refs/changes/23/1823/1
+# refs/changes/39/39/2
+# refs/changes/44/144/2
+
+# 2) Replace the last digit in the ref with "meta"
+for i in `cat /tmp/CHANGES_NUMBERS`; do echo "$(dirname $i)/meta"; done > /tmp/CHANGES_NUMBERS2
+
+# Example output
+# $ head /tmp/CHANGES_NUMBERS2
+# refs/changes/23/1823/meta
+# refs/changes/39/39/meta
+# refs/changes/44/144/meta
+
+# 3) Copy /tmp/CHANGES_NUMBERS2 to the gerrit server
+# 4) IMPORTANT!! Stop the gerrit instance and cd into the project's .git directory
+#    Make sure git log refs/changes/xx/yy/meta returns a log!
+# 5) Backup the `packed-refs` file somewhere safe
+# 6) Replace all matching refs' commit hash from /tmp/CHANGES_NUMBERS2 with refs/changes/xx/yy/meta~1
+
+for i in `cat /tmp/CHANGES_NUMBERS2`
+do
+    CURRENT="$(git rev-parse $i)";
+    REPLACE="$(git rev-parse $i~1)";
+    sed -i "s|$CURRENT $i|$REPLACE $i|g;" ~/packed-refs
+done
+```
