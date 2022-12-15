@@ -53,7 +53,10 @@ gerrit create-project LineageOS/android_packages_modules_Connectivity
 git push lgerrit:`repoproj` HEAD:refs/heads/master -o skip-validation
 gerrit create-branch `repoproj` lineage-19.1 ded73434a
 ```
-
+### Gerrit: List all changes that have a topic:
+```bash
+gerrit query 'intopic:^.+'
+```
 ### Gerrit: Undo all merges in project
 ```bash
 # 1) Query all current ref: refs/changes/xx/yy and save it to a temp file
