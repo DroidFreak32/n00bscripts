@@ -90,3 +90,23 @@ do
     sed -i "s|$CURRENT $i|$REPLACE $i|g;" ~/packed-refs
 done
 ```
+### Sanitizing gerrit's json.
+In this example I will be creating a mapping ChangeID <-> Topic
+
+1) Get all changes that have a topic and are merged:
+```bash
+gerrit query --current-patch-set 'intopic:^.+ status:merged' --no-limit --format=JSON > topics.json
+```
+2) Sanitize the json by [filtering all the unnecessary details](https://stackoverflow.com/a/46293052/6437140), and avoiding [empty lines](https://stackoverflow.com/a/26196653/6437140):
+```bash
+cat topics.json | jq 'with_entries(select([.key] | inside(["id", "topic"])))' | jq -c 'select(length > 0)' > gerrit.json
+```
+This gives us a file that looks like:
+```json
+{"topic":"ui-ux-improvements","id":"I1eb602412b25fc0741a75a5fd31ddcbe23fd8885"}
+{"topic":"screenshot-improvements","id":"I03b2db8a16078a91db12ddc1c3346d4a8ff0895c"}
+{"topic":"screenshot-improvements","id":"I361c7ae4bf74f2dd67b86e960f8d2d6ef63f5b8f"}
+{"topic":"screenshot-improvements","id":"If413241c3fa533650690cf3b7df5c05fb2f8c8ed"}
+{"topic":"screenshot-improvements","id":"I7669769ca3104b3566ed38f549af384f83d92d81"}
+{"topic":"screenshot-improvements","id":"Ic8318cdb72a64da8eeb7d0966d45314d450d2d39"}
+```
