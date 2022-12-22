@@ -3,11 +3,11 @@
 repo forall -g EXTRAS -c 'echo git remote add LineageOS git@github.com:$(echo ${REPO_PROJECT} | sed "s|ROM-EXTRAS|LineageOS|g;")'
 ```
 ### Check current HEAD of custom repos
-```
+```bash
 repo forall -v -g EXTRAS -c "git log --oneline | head -n1"
 ```
 ### List of all repos not matching manifest branch
-```
+```bash
 repoheads () {
     repo forall -pv -g EXTRAS -c "git log --oneline | head -n1" | grep -v github-ssh/lineage-19.1 | grep HEAD -B1 |grep project | cut -d' ' -f2
 }
@@ -15,7 +15,7 @@ repoheads () {
 for i in $(repoheads); do git rebase -f github-ssh/lineage-19.1 --exec="git commit --amend --no-edit"
 ```
 ### Generate custom repos `project-list` array to use with `repo start/upload`
-```
+```bash
 A=($(repo forall -g EXTRAS -c "echo \$REPO_PATH"))
 repo start lineage-19.1 "${A[@]}"
 ```
@@ -27,14 +27,14 @@ git log --oneline  github/lineage-19.1..<diffrepo> | awk '{first = $1; $1 = ""; 
 # Remove known misses, sort both, send to diffchecker
 ```
 ### Gerrit - Function to give replaced project name
-```
+```bash
 repoproj (){
 file="${1:-.}"
         repo info $file | grep Project | cut -d" " -f2 | sed 's/ROM-EXTRAS/LineageOS/g'
 }
 ```
 Alternative, needs [patches](https://github.com/OSS-App-Forks/git-repo) in the repo tool
-```
+```bash
 repoproj (){
         file="${1:-.}"
         repo info $file | grep 'ReviewProject' | cut -d" " -f2
@@ -55,7 +55,7 @@ for i in `cat CHANGES_NUMBERS`; do gerrit review --restore $i; done
 repo info . | grep Project | cut -d" " -f2
 ```
 ### Gerrit: force create project and update branch baseline
-```
+```bash
 gerrit create-project LineageOS/android_packages_modules_Connectivity
 git push lgerrit:`repoproj` HEAD:refs/heads/master -o skip-validation
 gerrit create-branch `repoproj` lineage-19.1 ded73434a
