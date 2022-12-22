@@ -33,6 +33,13 @@ file="${1:-.}"
         repo info $file | grep Project | cut -d" " -f2 | sed 's/ROM-EXTRAS/LineageOS/g'
 }
 ```
+Alternative, needs [patches](https://github.com/OSS-App-Forks/git-repo) in the repo tool
+```
+repoproj (){
+        file="${1:-.}"
+        repo info $file | grep 'ReviewProject' | cut -d" " -f2
+}
+```
 ### Find changeIDs that are duplicates
 ```bash
 git log <commit>..HEAD | grep Change-Id | awk '{print $2}' | sort | uniq -d
