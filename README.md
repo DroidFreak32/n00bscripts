@@ -1,5 +1,74 @@
 # n00bscripts & configs
 
+### Fun with ISP's Nokia router.
+* Requires shell access.
+
+*Nokia's router does not have PPPoE Passthrough mode. So, this series of notes are my attempts to manually make this possible through shell scripts.*  
+For Internet my ISP needs PPP packets to be tagged with VLAN 100.
+
+
+My rPI (which I want to use for the PPP connection so it gets its own Public IP) has a static IP 192.168.5.xx.
+
+My rPI already has a bridge br0, and at this point I am not too sure how to use pppoeconf to 
+
+First I check if I can manually add the rPI subnet to the bridge that contains the interface I have set to "Bridge Mode"
+
+- Currently the bridge setup is like so:
+```bash
+br0		8000.4033064043ce	no		ecd0
+							eth0.0
+							eth2.0
+							eth3.0
+							ra0.v0
+							ra1.v0
+							ra2.v0
+							ra3.v0
+							ra4.v0
+							rai0.v0
+							rai1.v0
+							rai2.v0
+							rai3.v0
+							rai4.v0
+br_sfu		8000.4033064043ce	no		wan0
+							eth1
+```
+Here, `br_sfu` are the list of interfaces that are in "Bridge Mode" (UI > Network > LAN > Port2 > Bridge Mode.)
+
+- `ip route`s for IPv4 show 2 ppp interfaces, 1 for Internet and 1 for VOIP
+```bash
+default via 122.<hide> dev ppp111
+10.83.90.0/23 dev pon_660_4_1  proto kernel  scope link  src 10.83.91.137
+122.<hide> dev ppp111  proto kernel  scope link  src 182.<hide>
+127.0.0.0/16 dev lo  scope link
+192.168.1.0/24 dev br0  proto kernel  scope link  src 192.168.1.1
+192.168.2.0/24 dev pon_d4097  proto kernel  scope link  src 192.168.2.2
+```
+
+- `ip a a 192.168.5.10/24 dev br_sfu` worked and I am able to Ping my rPI from within the ISP shell.
+- Next we need to have an iptables rule to mask 192.168.5.0/24 to br_sfu.
+
+----
+Alternative  
+
+- I can also connect a NIC to rPI a VLAN 100 link and start a PPP session on this VLAN interface.
+- To do so using `iproute2`, first we need to disable APIPA by denying the new `eth` interface on dhcpcd.conf
+```
+denyinterfaces eth0 eth1 eth100
+```
+
+- Create a link with vlan 100 with source `eth100`
+```bash
+ip link add link eth100 name eth_100 type vlan id 100
+ip link set dev eth100 up
+```
+
+- Set this nic in `ppp` config
+```bash
+# cat /etc/ppp/peers/dsl-provider | grep nic
+nic-eth_100
+```
+
+
 ### Zephyrus G15 2021 Linux Mods
 
 #### Enable SysRq support
