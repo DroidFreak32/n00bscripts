@@ -67,7 +67,7 @@ ip link set dev eth100 up
 # cat /etc/ppp/peers/dsl-provider | grep nic
 nic-eth_100
 ```
-
+---
 
 ### Zephyrus G15 2021 Linux Mods
 
