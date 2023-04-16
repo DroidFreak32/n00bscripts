@@ -19,6 +19,13 @@ for i in $(repoheads); do git rebase -f github-ssh/lineage-19.1 --exec="git comm
 A=($(repo forall -g EXTRAS -c "echo \$REPO_PATH"))
 repo start lineage-19.1 "${A[@]}"
 ```
+
+### Save list of extras repos to use it in a loop
+```bash
+extras(){
+    repo forall -v -g EXTRAS -c 'echo $REPO_PATH'
+}
+```
 ### compare missing commits between repos
 
 ```bash
