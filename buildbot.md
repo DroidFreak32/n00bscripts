@@ -124,3 +124,12 @@ This gives us a file that looks like:
 {"topic":"screenshot-improvements","id":"I7669769ca3104b3566ed38f549af384f83d92d81"}
 {"topic":"screenshot-improvements","id":"Ic8318cdb72a64da8eeb7d0966d45314d450d2d39"}
 ```
+
+### Undo-ing gerrit merge
+Refer my comment [here](https://stackoverflow.com/a/76076081/6437140)  
+This script is called via SSH to the gerrit server's HOST (Not the gerrit's SSH!)  
+Example of execution with script saved in my Gerrit Host's ~/gerrit/scripts/undo_merge.sh
+```bash
+ssh root@gerrithost 'GERRIT_REPO="LineageOS/android_vendor_lineage" ~/gerrit/scripts/undo_merge.sh'
+```
+Script: [LINK](dumps/undo_merge.sh)
