@@ -9,6 +9,19 @@ do
 	<ENTER YOUR COMMAND HERE>
 done
 ```
+### Cropping bars
+```bash
+#!/bin/bash
+
+for i in *.mkv #Scan all mkv files
+do
+	#echo $i > filename.txt
+	i="${i%.mkv}"	#Remove the extension
+	ffmpeg -i "$i.mkv" -map 0 -map_metadata 0 -map_chapters 0 -c copy -c:v libx265 -preset medium -x265-params crf=24 -pix_fmt yuv420p10le -vf "crop=1920:800:0:140,scale=1280:-2" -acodec libopus -af aformat=channel_layouts="7.1|5.1|stereo" -b:a 128k -copy_unknown ~/Movies/"Encoded_$i.mkv"
+	# mkvmerge -o "remux_$i.mkv" "Encoded_$i.mkv" "$i.srt"
+	#mv "$i.mkv" ./raw/
+done
+```
 ### MKVMerge - merge audio, chapters.xml, add movie title etc.
 ```bash
 mkvmerge -o "remux_$i.mkv" --language 0:eng --default-track 0:yes --sub-charset 1:UTF-8 --language 1:eng --default-track 1:yes "$i.mkv" --language 0:eng "$i.opus" --title "$name" --chapter-language eng --chapters "$i.chapters.xml" --track-order 0:0,1:0,0:1
