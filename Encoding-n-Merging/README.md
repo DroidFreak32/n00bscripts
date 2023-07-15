@@ -32,6 +32,11 @@ mkvmerge -o "remux_$i.mkv" --language 0:eng --default-track 0:yes --sub-charset 
 mkvmerge -o "remux_$i.mkv" -a !2,3 --compression -1:none "$i.mkv"
 ```
 
+### MKVMerge - Only use specific language tracks for audio and subs
+```bash
+mkvmerge -o output.mkv -s und,eng,jpn -a und,jpn input.mkv
+```
+
 ### MKVMerge - Extract Subs/other tracks
 ```bash
 mkvextract tracks "$i.mkv" <TID>:"$i.<ext>"
