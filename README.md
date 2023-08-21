@@ -1,5 +1,65 @@
 # n00bscripts & configs
 
+### WireGuard MTU shenanigans
+
+This one is messing with my head.
+
+**Context**:
+
+- Giving IPv4 internet Access to LAN devices when ISP Provides IPv6 only Connection over **PPPoE**. (à la NAT64?) which needs:
+    - A Dualstack VPS
+    - A Router capable of running pppd & WireGuard, bridged to IPV6-Only ISP's Modem. (I use a Raspberry Pi 4, so for simplicity this device will be referred to as `Pi`)
+
+**Current Setup**
+
+1. Setup a Wireguard Server on VPS
+2. Setup IPv6-only PPPoE on `Pi`
+3. Setup WireGuard interface `wg0` on `Pi` with:
+```ini
+PostUp = ip route add default dev %i
+PostUp = iptables -I FORWARD -i %i -o br0 -j ACCEPT
+PostUp = iptables -t nat -I POSTROUTING -s <LAN_IP>/24 -o %i -j SNAT --to-source <wg0_IP>
+PostDown = iptables -D FORWARD -i %i -o br0 -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -s <LAN_IP> -o %i -j SNAT --to-source <wg0_IP>
+
+[Peer]
+...
+Endpoint = [SERVER_PUBLIC_IPV6]:PORT
+AllowedIPs = 0.0.0.0/0
+```
+
+***What's Happening?***
+Packet Drops. LOTs of them.
+
+If we look at the logs when `wg0` comes up we notice it setting the `MTU` as `1412`:
+`[#] ip link set mtu 1412 up dev wg0`
+This is exactly 80 bytes less than the `ppp0` interface's `MTU` which is [expected of WireGuard](https://lists.zx2c4.com/pipermail/wireguard/2017-December/002201.html):
+```js
+6: ppp0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1492 qdisc pfifo_fast state UNKNOWN mode DEFAULT group default qlen 3
+    link/ppp
+```
+
+But for some reason, this is not working well with many websites. GitHub for example does not connect at all.
+If we look at the tcpdump from the VPS we find out a lot of TCP Retransmissions are happening.
+This can also be seen from A simple iperf3 test:
+```
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec   233 MBytes   196 Mbits/sec  1049             sender
+```
+
+This led me to few frustrating nights trying to mindlessly figure out (google) the best MTU value without ever studying how MTU works.
+1500? 1400? 1440? 1480? 1464? Some multiple of 28? or 28+8(PPPoE overhead)?
+
+If we check tailscale0 which also uses an userspace implementation of wireguard, the MTU size they define is 1280.
+I also see [this post](https://keremerkan.net/posts/wireguard-mtu-fixes/) by Kerem Erkan mentions this is the best value.
+So, after setting `MTU=1280` in `Pi`'s `wg0` config, here is the iperf3 result.
+
+```- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec   180 MBytes   151 Mbits/sec   14             sender
+```
+While the speed is low, I guess this is more stable and reliable.
+
 ### Fun with ISP's Nokia router.
 * Requires shell access.
 
