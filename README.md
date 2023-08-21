@@ -3,13 +3,13 @@
 ### Fun with ISP's Nokia router.
 * Requires shell access.
 
-*Nokia's router does not have PPPoE Passthrough mode. So, this series of notes are my attempts to manually make this possible through shell scripts.*  
+*Nokia's router does not have PPPoE Passthrough mode. So, this series of notes are my attempts to manually make this possible through shell scripts.*
 For Internet my ISP needs PPP packets to be tagged with VLAN 100.
 
 
 My rPI (which I want to use for the PPP connection so it gets its own Public IP) has a static IP 192.168.5.xx.
 
-My rPI already has a bridge br0, and at this point I am not too sure how to use pppoeconf to 
+My rPI already has a bridge br0, and at this point I am not too sure how to use pppoeconf to
 
 First I check if I can manually add the rPI subnet to the bridge that contains the interface I have set to "Bridge Mode"
 
@@ -48,7 +48,7 @@ default via 122.<hide> dev ppp111
 - Next we need to have an iptables rule to mask 192.168.5.0/24 to br_sfu.
 
 ----
-Alternative  
+Alternative
 
 - I can also connect a NIC to rPI a VLAN 100 link and start a PPP session on this VLAN interface.
 - To do so using `iproute2`, first we need to disable APIPA by denying the new `eth` interface on dhcpcd.conf
@@ -73,6 +73,8 @@ nic-eth_100
 
 #### Enable SysRq support
 
+**Update: This is now merged in the [ASUS-Linux FAQs](https://asus-linux.org/faq/#i-have-an-asus-laptop-without-the-prtsc-sysrq-key-can-i-remap-any-key-to-sysrq)**
+
 Credits: [ASUS-Linux](https://asus-linux.org/faq/#mic-mute-doesn-t-work) & [foell](https://www.foell.org/justin/remapping-keyboard-keys-in-ubuntu-with-udev-evdev)
 
 1) **Note down the keyboard IDs using `ls -l /dev/input/by-id/usb-ASUSTeK*`**
@@ -81,10 +83,10 @@ Credits: [ASUS-Linux](https://asus-linux.org/faq/#mic-mute-doesn-t-work) & [foel
 lrwxrwxrwx 1 root root 9 Sep 10 22:32 /dev/input/by-id/usb-ASUSTeK_Computer_Inc._N-KEY_Device-event-if00 -> ../event7
 lrwxrwxrwx 1 root root 9 Sep 10 22:32 /dev/input/by-id/usb-ASUSTeK_Computer_Inc._N-KEY_Device-if02-event-kbd -> ../event6
 ```
-The one ending with `if02-event-kbd` corresponds to the generic keys (qwerty, fn1-fn12, esc, delete etc).  
-Whereas the other one corresponds to the secondary actions (VOL_UP, VOL_DOWN, MIC_MUTE, all fn+<key> combos)  
+The one ending with `if02-event-kbd` corresponds to the generic keys (qwerty, fn1-fn12, esc, delete etc).
+Whereas the other one corresponds to the secondary actions (`VOL_UP`, `VOL_DOWN`, `MIC_MUTE`, all `fn+<key>` combos)
 
-It is on you to decide which key you'd like to remap to SysRq.  
+It is on you to decide which key you'd like to remap to SysRq.
 
 In my case, I will choose the `menu` key (`fn+RightCtrl`) as SysRq <-> `event7` above
 
@@ -115,7 +117,7 @@ N: Asus Keyboard
 I: 0003 0b05 19b6 0110
 ...
 ```
-The first three sections (in ALL CAPS) will be required later: `0003 0B05 19B6`  
+The first three sections (in ALL CAPS) will be required later: `0003 0B05 19B6`
 These are the `bus-id` `vendor-id` and `product-id` respectively.
 
 
@@ -133,7 +135,7 @@ Event: time 1662833525.577281, type 4 (EV_MSC), code 4 (MSC_SCAN), value 70065
 Event: time 1662833525.577281, type 1 (EV_KEY), code 127 (KEY_COMPOSE), value 0
 Event: time 1662833525.577281, -------------- SYN_REPORT ------------
 ```
-From the output above, the `ScanCode` is `70065` and `KeyCode` is [`KEY_COMPOSE`](https://github.com/torvalds/linux/blob/v5.19/include/uapi/linux/input-event-codes.h#L204)  
+From the output above, the `ScanCode` is `70065` and `KeyCode` is [`KEY_COMPOSE`](https://github.com/torvalds/linux/blob/v5.19/include/uapi/linux/input-event-codes.h#L204)
 
 If using `AURA` key for ex, you'll have to run `evtest` on `usb-ASUSTeK..event-if00` and the output would be something like
 ```bash
@@ -176,11 +178,11 @@ I want my Pi to act as
     - This is where bridging USB and NIC comes into picture.
     - Some dongles do not allow changing the LAN subnet, so unfortunately DHCP will be required to setup the Internet facing interfaces.
 7. Use it as a wireless AP to bypass dongle restrictions
-~~8. Use IPv6-in-IPv4 Relay (route48) for IPV6 support~~  
+~~8. Use IPv6-in-IPv4 Relay (route48) for IPV6 support~~
 Let's get started.
 ___
-### Setting up a bridge interface configs for `systemd-networkd`
-Purpose: 
+#### Setting up a bridge interface configs for `systemd-networkd`
+Purpose:
 When using broadband, we use the gigabit NIC `eth0` however if we are to use a USB dongle, rPi will create eth1.
 Settings up a "universal" bridge interface `br0` to combine both `eth0` and `eth1` will make the rest of our configuration easy, since we can just point them to `br0`
 
@@ -232,7 +234,7 @@ denyinterfaces eth0 eth1
     inet <IP/MASK> brd 192.168.5.255 scope global br0
 ```
 
-### Setting up a wireless AP
+#### Setting up a wireless AP
 1) Create `/etc/hostapd/hostapd.conf`
 ```
 ctrl_interface=/var/run/hostapd
@@ -291,12 +293,12 @@ ignore_broadcast_ssid=0
 2) Unmask and start hostapd service
 `systemctl unmask hostapd && systemctl start hostapd`
 
-This should be enough, <ins>**however if you did not set `bridge=br0`**</ins> you'll need to setup additional configs 
+This should be enough, <ins>**however if you did not set `bridge=br0`**</ins> you'll need to setup additional configs
 
-### Wireless AP: Optional Steps if not using br0
+#### Wireless AP: Optional Steps if not using br0
 
 We'll need to setup NAT rules, DHCP server etc
-1) Install `iptables` for wlan forwarding  
+1) Install `iptables` for wlan forwarding
   `sudo apt install iptables-persistent iptables-netflow-dkms iptables nftables`
 2) Set a static IP for `wlan0` in `/etc/dhcpcd.conf`
 ```
@@ -342,10 +344,10 @@ COMMIT
 ```
 Now you should be ready to have your Pi act like an AP and also use its inbuild PiHole to block ads
 
-### PiHole + Unbound setup
+#### PiHole + Unbound setup
 
-1) Install PiHole following the docs, choose br0 as the interface and Skip setting Static IP  
-2) Setup unbound: https://docs.pi-hole.net/guides/dns/unbound/  
+1) Install PiHole following the docs, choose br0 as the interface and Skip setting Static IP
+2) Setup unbound: https://docs.pi-hole.net/guides/dns/unbound/
 3) Disable the unbound-resolvconf service
 4) Create this systemd timer to delay unbound's resolvconf service:
 ```
@@ -401,12 +403,12 @@ COMMIT
 ___
 ## Load balancing multiple internet connections over a single NIC with help of [dispatch-proxy](https://github.com/alexkirsz/dispatch)
 #### My Setup
-Home LAN: `192.168.1.0/24`  
-ISP Gateway (`RT`): `192.168.1.1/24`  
-Raspberry Pi (`RPi`): `192.168.1.2/24` (Static with no default gateway)  
-My Laptop (`LPt`): `192.168.1.100/24` (DHCP)  
+Home LAN: `192.168.1.0/24`
+ISP Gateway (`RT`): `192.168.1.1/24`
+Raspberry Pi (`RPi`): `192.168.1.2/24` (Static with no default gateway)
+My Laptop (`LPt`): `192.168.1.100/24` (DHCP)
 
-I have my ISP FTTH router (`RT`) set to PPPoE passthrough mode which lets any one LAN device also send PPP requests.  
+I have my ISP FTTH router (`RT`) set to PPPoE passthrough mode which lets any one LAN device also send PPP requests.
 This lets me have my Raspberry Pi - connected to `RT`'s LAN at `192.168.1.2` - send PPP requests and have its own PPP connection:
 ```
 <WAN1> <WAN2>
@@ -415,13 +417,13 @@ This lets me have my Raspberry Pi - connected to `RT`'s LAN at `192.168.1.2` - s
     |      `-br_lan - 192.168.1.1/24
     |        `-LPt
     |          `-eth0 - 192.168.1.100/24 (default gateway: 192.168.1.1)
-    |        `-RPi 
+    |        `-RPi
     |          `-eth0 - 192.168.1.2/24 (default gateway: ppp0)
     `------------`-ppp0 - <PPP PUBLIC IP 2>
 ```
 Note: `ppp0` can be any of your internet facing interface (`eth1`/`wlan0` etc)
 
-By design, each network can only have 1 default gateway.  
+By design, each network can only have 1 default gateway.
 However, in my case I am able to access the internet from both `RT` and `rPI` which are both under the `192.168.1.0/24` network.
 `LPt` by default can only access internet through `RT`
 
@@ -430,7 +432,7 @@ To overcome this, we can make use of a new subnet `192.168.2.0/24` + a new routi
 `-LPt
   `-eth0 - 192.168.1.100/24 (default gateway: 192.168.1.1, rt_table=main)
          - 192.168.2.100/24 (default gateway: 192.168.2.2, rt_table=100) *** New subnet ***
-`-RPi 
+`-RPi
   `-eth0 - 192.168.1.2/24 (default gateway: ppp0)
          - 192.168.2.2/24 (default gateway: ppp0 through NAT) *** New subnet ***
 ```
@@ -482,7 +484,7 @@ ___
 
 ## WireGuard config to "split-tunnel" into a VPN,
 
-Within your VPN-provider's WireGuard config you need to make a couple of changes Inside `[Interface]` Section.  
+Within your VPN-provider's WireGuard config you need to make a couple of changes Inside `[Interface]` Section.
 I named it wg-vpn.conf
 
 ```ini
@@ -496,7 +498,7 @@ PostUp = ip route add default dev wg-vpn table 1337
 PreDown = ip route del default dev wg-vpn table 1337
 ```
 
-Then you need to create a new WireGuard "bridge" interface config.  
+Then you need to create a new WireGuard "bridge" interface config.
 This cannot be your DNS-only/PiHole interface because it would then depend on `wg-vpn` interface to be always up.
 
 I have set up my bridge interface like so:
@@ -537,7 +539,7 @@ TODO:
 ##### bonus config for *enterprise* VPN:
 ```ini
 [Interface]
-PrivateKey = 
+PrivateKey =
 Address = hh.hh.hh.1/24,hx:hx:hx:h112::1/112
 MTU = 1420
 ListenPort = PORT
@@ -552,8 +554,8 @@ PostDown = iptables -w -t nat -D POSTROUTING -s hh.hh.hh.0/24 -o work_tun -j MAS
 
 ### begin Rushab8T-Work ###
 [Peer]
-PublicKey = 
-PresharedKey = 
+PublicKey =
+PresharedKey =
 AllowedIPs = hh.hh.hh.3/32,hx:hx:hx:h112::3/128
 ### end Rushab8T-Work ###
 ```
@@ -574,7 +576,7 @@ grep -a -L -r -E --include="*.flac" "libFLAC|fLaC"
 # Finds all *.flac files and sends the sorted list to a.txt
 find . -name "*.flac" | sort > a.txt
 
-# Using git to commit the file list inorder to do a git diff later. 
+# Using git to commit the file list inorder to do a git diff later.
 git init . ; git add a.txt ; git commit -m "Init"
 
 # Finds all encoded *.opus files, renames the extension to .flac and overwrites a.txt with the new list.
@@ -665,15 +667,15 @@ find /sdcard/ -type f -iname "*.flac" |sed -e "s|^|am broadcast -a 'android.inte
 ```
 ```text
 Explanation:
-1) find /sdcard/ -type f -iname "*.flac" 
+1) find /sdcard/ -type f -iname "*.flac"
  - Prints all the matched files.
 
-2) sed -e "s|^|am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE' 
+2) sed -e "s|^|am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE'
  - Replaces the start of each `find` result with
  am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE'
  - -d file://\"|g;" Then adds a " at the end of file:// to complete the string as:
  am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE' -d file://"
- 
+
 3)  -e "s|$|\"|g;"
  - appends " at the end of the output to close the " in step 2
 
@@ -783,7 +785,7 @@ Example:
 ID			artist	title	error
 91092377	Seether	I've Got You Under My Skin	Your account can't stream the track from your current country and no alternative found.
 
-Matches till BEFORE the TITLE column 
+Matches till BEFORE the TITLE column
 ```
 ---
 
