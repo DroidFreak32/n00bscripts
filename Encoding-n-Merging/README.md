@@ -64,6 +64,40 @@ do
 	# echo "title=${var[$((index++))]}"
 done
 ```
+### MKVMerge Reorder Specific tracks and set defaults:
+```bash
+# Step 1: Identify tracks
+$ mkvmerge --identify \[MK-Pn8\]\ Parasyte\ -the\ maxim-\ 01v2\ \[BD\ 1080p\]\[Dual-Audio\]\[E672142C\].mkv
+File '[MK-Pn8] Parasyte -the maxim- 01v2 [BD 1080p][Dual-Audio][E672142C].mkv': container: Matroska
+Track ID 0: video (MPEG-4p10/AVC/H.264)
+Track ID 1: audio (FLAC)
+Track ID 2: audio (FLAC)
+Track ID 3: subtitles (SubStationAlpha)
+Track ID 4: subtitles (SubStationAlpha)
+Attachment ID 1: type 'application/x-truetype-font', size 83160 bytes, file name 'DAYROM.ttf'
+Attachment ID 2: type 'application/x-truetype-font', size 106728 bytes, file name 'GandhiSans-Bold.otf'
+Attachment ID 3: type 'application/x-truetype-font', size 114888 bytes, file name 'GandhiSans-BoldItalic.otf'
+Attachment ID 4: type 'application/x-truetype-font', size 135312 bytes, file name 'helvetica-neue-bold.ttf'
+Attachment ID 5: type 'application/x-truetype-font', size 33024 bytes, file name 'JandaEverydayCasual.ttf'
+Attachment ID 6: type 'application/x-truetype-font', size 38220 bytes, file name 'Kreon-Bold.ttf'
+Attachment ID 7: type 'application/x-truetype-font', size 37432 bytes, file name 'Kreon-Regular.ttf'
+Attachment ID 8: type 'application/x-truetype-font', size 85276 bytes, file name 'OctemberScript.ttf'
+Attachment ID 9: type 'application/x-truetype-font', size 82256 bytes, file name 'Alpha54.ttf'
+Attachment ID 10: type 'application/x-truetype-font', size 28624 bytes, file name 'ArtificeSSK.ttf'
+Attachment ID 11: type 'application/x-truetype-font', size 77744 bytes, file name 'AVERIASANS-LIGHT.TTF'
+Chapters: 6 entries
+
+# Step 2: Reorder and merge
+$ mkvmerge -o ../../gd1/ps.mkv -a 2 --default-track 2:true -s 4 --default-track 4:true \[MK-Pn8\]\ Parasyte\ -the\ maxim-\ 01v2\ \[BD\ 1080p\]\[Dual-Audio\]\[E672142C\].mkv
+
+mkvmerge v52.0.0 ('Secret For The Mad') 64-bit
+'[MK-Pn8] Parasyte -the maxim- 01v2 [BD 1080p][Dual-Audio][E672142C].mkv': Using the demultiplexer for the format 'Matroska'.
+'[MK-Pn8] Parasyte -the maxim- 01v2 [BD 1080p][Dual-Audio][E672142C].mkv' track 0: Using the output module for the format 'AVC/H.264'.
+'[MK-Pn8] Parasyte -the maxim- 01v2 [BD 1080p][Dual-Audio][E672142C].mkv' track 2: Using the output module for the format 'FLAC'.
+'[MK-Pn8] Parasyte -the maxim- 01v2 [BD 1080p][Dual-Audio][E672142C].mkv' track 4: Using the output module for the format 'text subtitles'.
+The file '../../gd1/ps.mkv' has been opened for writing.
+```
+
 ### FFMpeg 720p x265 encoding sweetspot (suggestions welcome)
 ```bash
 ffmpeg -i "$i.mkv" -map 0 -map_metadata 0 -map_chapters 0 \
