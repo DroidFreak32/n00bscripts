@@ -904,12 +904,13 @@ int main() {
     xdo_enter_text_window(x, CURRENTWINDOW, "ThisIsAText", 0);
     return 0;
 }
----
 ```
+
+---
 #### ADB shell command to allow KDE Connect Notification Access
 `cmd notification allow_listener org.kde.kdeconnect_tp/org.kde.kdeconnect.Plugins.NotificationsPlugin.NotificationReceiver`
 
-
+---
 #### [Update cloudflare IP range for nginx](https://frankindev.com/2020/11/18/allow-cloudflare-only-in-nginx)
 ```bash
 #!/usr/bin/bash
@@ -932,4 +933,10 @@ echo "# Generated at $(LC_ALL=C date)"
 
 # reload Nginx
 # sudo systemctl reload nginx
+```
+
+---
+#### `find` all files that contain a crc32 code
+```bash
+find . -type f -regextype posix-extended -iregex '.*\[[0-f]{8}\][^/]*'
 ```
