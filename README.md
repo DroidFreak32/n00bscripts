@@ -8,6 +8,7 @@
 Now you can run a reverse proxy like [NginxProxyManager](https://github.com/NginxProxyManager/nginx-proxy-manager) to redirect traffic to all your services.
 Just use the source as <servicename>.homelab.\<tailnet domain>
 
+![Screenshot](./images/npm.png)
 ---
 
 ### WireGuard MTU shenanigans
