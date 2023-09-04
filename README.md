@@ -1,5 +1,15 @@
 # n00bscripts & configs
 
+### Cloudflare Wildcard DNS Jugaad through a [Tailscale](https://tailscale.com/) node
+
+1) Fetch the Tailscale Node's IP address from your [admin console](https://login.tailscale.com/admin/machines)
+2) Create an A record like *.homelab on [Cloudflare Dashboard](https://dash.cloudflare.com) and point it to the Tailscale Node's IP.
+
+Now you can run a reverse proxy like [NginxProxyManager](https://github.com/NginxProxyManager/nginx-proxy-manager) to redirect traffic to all your services.
+Just use the source as <servicename>.homelab.\<tailnet domain>
+
+---
+
 ### WireGuard MTU shenanigans
 
 This one is messing with my head.
