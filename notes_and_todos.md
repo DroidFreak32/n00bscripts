@@ -25,3 +25,7 @@ https://forum.xda-developers.com/showpost.php?p=74473178&postcount=25
 #### Print units in the new custome seekbarpreference
 Preference: https://github.com/ROM-EXTRAS/android_vendor_support/commit/bed6a00422cb8d82f2098c40eb6c3bbacbccb4e6
 File: res/xml/gesture_anywhere.xml
+
+
+
+I7f0a56f1e2b4d65a595cbe8e9437963b0afa25ab
