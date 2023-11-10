@@ -68,7 +68,7 @@ While the speed is low, I guess this is more stable and reliable.
 2) Create an A record like *.homelab on [Cloudflare Dashboard](https://dash.cloudflare.com) and point it to the Tailscale Node's IP.
 
 Now you can run a reverse proxy like [NginxProxyManager](https://github.com/NginxProxyManager/nginx-proxy-manager) to redirect traffic to all your services.
-Just use the source as <servicename>.homelab.\<tailnet domain>
+Just use the source as `<servicename>.homelab.\<tailnet domain>`
 
 ![Screenshot](./images/npm.png)
 ---
