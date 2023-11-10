@@ -1,16 +1,5 @@
 # n00bscripts & configs
 
-### Cloudflare Wildcard DNS Jugaad through a [Tailscale](https://tailscale.com/) node
-
-1) Fetch the Tailscale Node's IP address from your [admin console](https://login.tailscale.com/admin/machines)
-2) Create an A record like *.homelab on [Cloudflare Dashboard](https://dash.cloudflare.com) and point it to the Tailscale Node's IP.
-
-Now you can run a reverse proxy like [NginxProxyManager](https://github.com/NginxProxyManager/nginx-proxy-manager) to redirect traffic to all your services.
-Just use the source as <servicename>.homelab.\<tailnet domain>
-
-![Screenshot](./images/npm.png)
----
-
 ### WireGuard MTU shenanigans
 
 This one is messing with my head.
@@ -70,6 +59,19 @@ So, after setting `MTU=1280` in `Pi`'s `wg0` config, here is the iperf3 result.
 [  5]   0.00-10.00  sec   180 MBytes   151 Mbits/sec   14             sender
 ```
 While the speed is low, I guess this is more stable and reliable.
+
+---
+
+### Cloudflare Wildcard DNS जुगाड़ through a [Tailscale](https://tailscale.com/) node
+
+1) Fetch the Tailscale Node's IP address from your [admin console](https://login.tailscale.com/admin/machines)
+2) Create an A record like *.homelab on [Cloudflare Dashboard](https://dash.cloudflare.com) and point it to the Tailscale Node's IP.
+
+Now you can run a reverse proxy like [NginxProxyManager](https://github.com/NginxProxyManager/nginx-proxy-manager) to redirect traffic to all your services.
+Just use the source as <servicename>.homelab.\<tailnet domain>
+
+![Screenshot](./images/npm.png)
+---
 
 ### Fun with ISP's Nokia router.
 * Requires shell access.
