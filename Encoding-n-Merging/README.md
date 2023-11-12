@@ -145,7 +145,7 @@ for i in *.mp4; do j="${i%.mp4}"; TIME=$(echo $j | sed "s/VID_//g;" | sed "s/_//
 ```bash
 mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'
 
-# Output
+# Output - Relevant SO link https://stackoverflow.com/a/31911811/6437140
 mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'
 eng
 eng
