@@ -140,3 +140,38 @@ for i in *.mp4; do j="${i%.mp4}"; TIME=$(echo $j | sed "s/VID_//g;" | sed "s/_//
  find . -type f -name "*flac" -exec metaflac --sort-padding {} \;
  find . -type f -name "*flac" -exec metaflac --remove --block-type=PADDING --dont-use-padding {} \;
 ```
+
+### Find languages of subtitles present in an MKV file
+```bash
+mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'
+
+# Output
+mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'
+eng
+eng
+ara
+chi
+cze
+dan
+dut
+est
+fin
+fre
+ger
+ger
+hun
+ice
+ita
+kor
+lav
+lit
+nob
+pol
+por
+rum
+rus
+spa
+swe
+tha
+tur
+```
