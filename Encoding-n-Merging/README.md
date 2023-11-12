@@ -141,11 +141,14 @@ for i in *.mp4; do j="${i%.mp4}"; TIME=$(echo $j | sed "s/VID_//g;" | sed "s/_//
  find . -type f -name "*flac" -exec metaflac --remove --block-type=PADDING --dont-use-padding {} \;
 ```
 
-### Find languages of subtitles present in an MKV file
+### Find languages of subtitles/audio present in an MKV file
+
 ```bash
 mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'
 
 # Output - Relevant SO link https://stackoverflow.com/a/31911811/6437140
+# select(.type=="subtitles") can be changed to select(.type=="audio")
+
 mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'
 eng
 eng
