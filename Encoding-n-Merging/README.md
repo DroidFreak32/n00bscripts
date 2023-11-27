@@ -127,6 +127,10 @@ rm "$i.mkv" "$i.srt"
 for i in *.mp4; do j="${i%.mp4}"; TIME=$(echo $j | sed "s/VID_//g;" | sed "s/_//g;" ) ; TIME="${TIME::-2}"; touch -mt $TIME $i ; done
 ```
 
+### FFMpeg HWAccel
+```bash
+ffmpeg -strict 2 -hwaccel auto -i INPUT.mkv -metadata -c:v hevc_nvenc -rc vbr -cq 24 -qmin 24 -qmax 24 -profile:v main10 -preset:v slow -pix_fmt p010le -b:v 0K -bf:v 3 -coder:v cabac -b_ref_mode:v middle -refs:v 16 -c:a copy -c:s copy -map_chapters 0 -map 0 -map_metadata 0 OUTPUT.mkv
+
 ### [ReNamer](https://www.den4b.com/products/renamer) rules for Music filename formatting
 ```text
 1) Replace: Replace using wildcards " A " with " a ", " An " with " an ", " The " with " the ", " And " with " and ", " But " with " but ", " Or " with " or ", " On " with " on ", " Nor " with " nor ", " For " with " for ", " From " with " from ", " Yet " with " yet ", " So " with " so ", " As " with " as ", " At " with " at ", " By " with " by ", " In " with " in ", " Of " with " of ", " To " with " to ", " (Album Version)" with "", " (Non-Album Track)" with "", " (Album Version Explicit)" with "", " (Remastered)" with "", ") (Live)" with ")", " Ta " with " ta " (skip extension) (case sensitive)
