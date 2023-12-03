@@ -153,7 +153,7 @@ mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '
 # Output - Relevant SO link https://stackoverflow.com/a/31911811/6437140
 # select(.type=="subtitles") can be changed to select(.type=="audio")
 
-mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'
+mkvmerge --identification-format json --identify Arrival\ \(2016\).mkv | jq -r '.tracks[] | select(.type=="subtitles") | .properties.language'  
 
 eng
 eng
