@@ -141,7 +141,23 @@ ip link set dev eth100 up
 nic-eth_100
 ```
 ---
+### Setting HTTP(s) Proxy for Dockerd on OpenWrt
+```
+# Modify the start_service() function to look like this:
 
+start_service() {
+	local nofile=$(cat /proc/sys/fs/nr_open)
+
+	process_config
+	export HTTP_PROXY="http://10.10.10.10:3128"
+	export HTTPS_PROXY="http://10.10.10.10:3128"
+
+	procd_open_instance
+	procd_set_param stderr 1
+	procd_set_param env HTTPS_PROXY="http://10.10.10.10:3128" HTTP_PROXY="http://10.10.10.10:3128"
+# ...
+```
+---
 ### Zephyrus G15 2021 Linux Mods
 
 #### Enable SysRq support
