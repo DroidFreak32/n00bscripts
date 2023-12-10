@@ -969,3 +969,19 @@ echo "# Generated at $(LC_ALL=C date)"
 ```bash
 find . -type f -regextype posix-extended -iregex '.*\[[0-f]{8}\][^/]*'
 ```
+
+---
+#### Download latest MergerFS
+```bash
+export release_type=jammy_amd64
+wget $(curl -s https://api.github.com/repos/trapexit/mergerfs/releases/latest | jq -r ".assets[] | select(.name | test(\"${release_type}\")) | .browser_download_url")
+sudo dpkg -i mergerfs_*$release_type.deb
+```
+
+---
+#### Download latest Hugo
+```bash
+export release_type=linux-amd64.deb
+curl -s https://api.github.com/repos/gohugoio/hugo/releases/latest | jq -r ".assets[] | select(.name | test(\"${release_type}\")) | .browser_download_url"
+# Now select the normal or extended version and download via wget
+```
