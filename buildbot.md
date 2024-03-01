@@ -133,3 +133,11 @@ Example of execution with script saved in my Gerrit Host's ~/gerrit/scripts/undo
 ssh root@gerrithost 'GERRIT_REPO="LineageOS/android_vendor_lineage" ~/gerrit/scripts/undo_merge.sh'
 ```
 Script: [LINK](dumps/undo_merge.sh)
+
+### Picks
+```bash
+384033
+384034
+384498
+384499
+```
