@@ -249,6 +249,21 @@ evdev:input:b0003v0B05p19B6*
 ```
 `sysrq` can be replaced with any keycode supported in this list: https://github.com/torvalds/linux/blob/v5.19/include/uapi/linux/input-event-codes.h
 
+
+#### [Fix Sleep issues on SED drives](https://wiki.archlinux.org/title/Self-encrypting_drives#Waking_up_from_suspend)
+```ini
+[Unit]
+Description=sedutil-sleep
+
+[Service]
+Type=oneshot
+#Add as many ExecStart lines as needed here
+ExecStart=-+/usr/bin/sedutil-sleep -n -x --prepareForS3Sleep 0 <random string of text> /dev/nvme0n1
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+```
 ---
 ## Pi-Hole setup
 
