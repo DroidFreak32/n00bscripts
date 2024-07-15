@@ -26,8 +26,8 @@ https://github.com/crdroidandroid/android_frameworks_base/blob/8fcf14a3d6d08539d
 
 Bring back LS Media art
 ```text
-https://github.com/crdroidandroid/android_frameworks_base/commit/2072ec4b769c27021772cf79171e84a17b45f46e#diff-22b50a487325749a573c15495154cfa591888c37ad4560f87df3de62250d68fa
-https://github.com/crdroidandroid/android_frameworks_base/commit/4f6344bab4311d559050911167542c9b1a26718b
 Reverts:
 https://github.com/crdroidandroid/android_frameworks_base/commits/2072ec4b769c27021772cf79171e84a17b45f46e/
+https://github.com/crdroidandroid/android_frameworks_base/commit/2072ec4b769c27021772cf79171e84a17b45f46e#diff-22b50a487325749a573c15495154cfa591888c37ad4560f87df3de62250d68fa
+https://github.com/crdroidandroid/android_frameworks_base/commit/4f6344bab4311d559050911167542c9b1a26718b
 ```
