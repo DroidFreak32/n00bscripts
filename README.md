@@ -764,6 +764,17 @@ do
 done
 ```
 
+#### For gPhotos Format `PXL_20240816_044209093.RAW-01.COVER.jpg`
+```bash
+for i in $(cat images.txt);
+do
+	TIMESTAMP="$(echo ${i:4:18} | sed 's/_//g;')";
+	MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}.${TIMESTAMP:14:3}"
+	echo "$i --> $MODTIME";
+	touch -a -c -m -d "$MODTIME" "$i"
+	echo "====";
+done
+```
 
 ## ADB - recursively scan media from [find result](https://stackoverflow.com/questions/1279953/how-to-execute-the-output-of-a-command-within-the-current-shell)
 ```bash
