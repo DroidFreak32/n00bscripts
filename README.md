@@ -764,7 +764,7 @@ do
 done
 ```
 
-#### For gPhotos Format `PXL_20240816_044209093.RAW-01.COVER.jpg`
+#### [BSD/MACOS] For gPhotos Format `PXL_20240816_044209093.RAW-01.COVER.jpg`
 ```bash
 for i in $(cat images.txt);
 do
