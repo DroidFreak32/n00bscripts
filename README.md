@@ -1,5 +1,104 @@
 # n00bscripts & configs
 
+### Tunneling HE.net ipv6 /48 over WireGuard to OpenWrt router, via a VPS to bypass CGNAT
+#### Server Side (VPS)
+1) Create a /48 tunnel in tunnelbroker.net
+2) Fill in these variables
+
+```bash
+# Tunnel ID (URL bar contains unnel_detail.php?tid=<digits>)
+HE_HOSTNAME_ID=
+# Interface Name for the sit tunnel
+HE_INTERFACE="he-ipv6"
+# A local interface IP, use public IP if not behind NAT
+HE_LOCAL_IP="172.16.14.1"
+# Get these from the "Advanced page under Example URL"
+HE_USERNAME=""
+HE_PASSWORD=""
+# Remote IP provided to you
+HE_REMOTE_IP="221.111.222.223"
+# Remote IP provided to you
+HE_SUBNET_48="2001:bad:c0de::/48"
+# Custom routing table to prevent overriding default route
+ROUTE_TABLE="999"
+```
+
+3) Create the tunnel interface
+
+```bash
+export MY_IP="$(curl "https://$HE_USERNAME:$HE_PASSWORD@ipv4.tunnelbroker.net/nic/update?hostname=$HE_TUN_ID")"
+echo "Updated IP to: $MY_IP" | systemd-cat -p info -t 6in4
+ip tunnel add "$HE_INTERFACE" mode sit remote "$HE_REMOTE_IP" local "$HE_LOCAL_IP" ttl 255
+ip link set "$HE_INTERFACE" up
+ip addr add "$HE_SUBNET_48" dev "$HE_INTERFACE"
+ip route add ::/0 dev "$HE_INTERFACE" table "$ROUTE_TABLE" metric 1
+ip route add "$HE_SUBNET_48" dev "$HE_INTERFACE" table "$ROUTE_TABLE"
+ip route add fe80::/64 dev "$HE_INTERFACE" table "$ROUTE_TABLE"
+ip -6 rule add from "$HE_SUBNET_48" lookup "$ROUTE_TABLE"
+ip -6 rule add to "$HE_SUBNET_48" lookup "$ROUTE_TABLE"
+```
+
+4) Create a wiregurad config `/etc/wireguard/6in4.conf`
+
+```ini
+[Interface]
+PrivateKey = NO
+Address = 2001:bad:c0de:8000::254/49
+ListenPort = 11111
+Table = 999
+MTU = 1420
+PostUp = sysctl net.ipv6.conf.all.forwarding=1 # This will enable IPv6 forwarding on your VPS
+PostUp = ufw route allow in on %i out on eth0 # This will allow your firewall to allow IP forwarding on your VPS
+PreDown = sysctl net.ipv6.conf.all.forwarding=0
+PreDown = ufw route delete allow in on %i out on eth0
+
+[Peer]
+PublicKey = NO
+AllowedIPs = 2001:bad:c0de:8000::/49
+```
+
+5) Start the wireguard interface `wg-quick up 6in4`
+
+#### Client Side (OpenWrt)
+
+1) Install the WireGuard packages `luci-proto-wireguard` & reboot
+2) Create a new wireguard interface, say `wan6`
+3) `wan6` config snippet from `/etc/config/network`:
+
+```
+config interface '6in4'
+    option proto 'wireguard'
+    option private_key 'no'
+    option mtu '1420'
+    option ip6assign '64'
+    option ip6hint '56'
+    list addresses '2001:bad:c0de:8000::/49'
+
+config wireguard_6in4
+    option description 'vpc'
+    option public_key 'NO'
+    option route_allowed_ips '1'
+    option endpoint_host '<VPS IP>'
+    option endpoint_port '<VPS WireGuard Port>'
+    option persistent_keepalive '25'
+    list allowed_ips '::/0'
+```
+
+4) Add WireGuard `wan6` interface to `wan` firewall zone
+5) Create a separate `LAN6` interface which is an alias of `LAN`, just for one **static** IPv6 /64 subnet.
+
+```
+config interface 'LAN6'
+    option proto 'static'
+    option device 'br-lan'
+    list ip6addr '2001:bad:c0de:8069::/64'
+    option ip6gw '2001:bad:c0de:8000::'
+```
+Ensure Firewall Zone is approprately set (ex. `lan` zone).  
+Similarly you can create multiple isolated zones for each of your vlan-separated subnets, by just adding a new static IPv6-only interface with another /64 subnet (under the parent /49 subnet).
+
+---
+
 ### WireGuard MTU shenanigans
 
 This one is messing with my head.
