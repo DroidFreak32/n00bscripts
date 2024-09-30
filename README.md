@@ -1110,3 +1110,9 @@ export release_type=linux-amd64.deb
 curl -s https://api.github.com/repos/gohugoio/hugo/releases/latest | jq -r ".assets[] | select(.name | test(\"${release_type}\")) | .browser_download_url"
 # Now select the normal or extended version and download via wget
 ```
+
+---
+#### GrapheneOS [WebInstaller](https://grapheneos.org/install/web#unlocking-the-bootloader) ROM Zip location on MacOS
+```
+~/Library/Application Support/BraveSoftware/Brave-Browser/Default/IndexedDB/https_grapheneos.org_0.indexeddb.blob/1/00
+```
