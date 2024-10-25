@@ -863,6 +863,16 @@ do
 done
 ```
 
+#### GNU/Linux This is for format PXL_20241012_084212681.MP.mp4
+```bash
+for i in *.MP.mp4
+do
+    TIMESTAMP=$(basename $i .MP.mp4| sed 's/_//g;');
+    MODTIME="${TIMESTAMP:3:4}-${TIMESTAMP:7:2}-${TIMESTAMP:9:2} ${TIMESTAMP:11:2}:${TIMESTAMP:13:2}:${TIMESTAMP:15:2}.${TIMESTAMP:17:3}";
+    touch -c -d "$MODTIME" "$i" && echo "Modified $i";
+done
+```
+
 #### [BSD/MACOS] For gPhotos Format `PXL_20240816_044209093.RAW-01.COVER.jpg`
 ```bash
 for i in $(cat images.txt);
