@@ -897,6 +897,18 @@ for f in *; do
 done
 ```
 
+#### [GNU/Linux] Using [ExifTool](https://exiftool.org/exiftool_pod.html)`
+```
+for f in *; do
+    EPOCH="$(exiftool -s3 -datetimeoriginal -d "%s" "$f")";
+    EPOCH_MS="$(exiftool -s3 -SubsecTimeOriginal -d "%s" "$f")";
+    MODTIME=$(date -d@$EPOCH.$EPOCH_MS "+%Y-%m-%dT%H:%M:%S.%3N")
+    echo "$f --> $MODTIME";
+    touch --date="@$EPOCH.$EPOCH_MS" "$f"
+    echo "====";
+done
+```
+
 ## ADB - recursively scan media from [find result](https://stackoverflow.com/questions/1279953/how-to-execute-the-output-of-a-command-within-the-current-shell)
 ```bash
 find /sdcard/ -type f -iname "*.flac" |sed -e "s|^|am broadcast -a 'android.intent.action.MEDIA_SCANNER_SCAN_FILE' -d file://\"|g;" -e "s|$|\"|g;"| source /dev/stdin
