@@ -886,7 +886,7 @@ done
 ```
 
 #### [BSD/MACOS] Using [ExifTool](https://exiftool.org/exiftool_pod.html)`
-```
+```bash
 for f in *; do
     EPOCH="$(exiftool -s3 -datetimeoriginal -d "%s" "$f")";
     EPOCH_MS="$(exiftool -s3 -SubsecTimeOriginal -d "%s" "$f")";
@@ -898,7 +898,7 @@ done
 ```
 
 #### [GNU/Linux] Using [ExifTool](https://exiftool.org/exiftool_pod.html)`
-```
+```bash
 for f in *; do
     EPOCH="$(exiftool -s3 -datetimeoriginal -d "%s" "$f")";
     EPOCH_MS="$(exiftool -s3 -SubsecTimeOriginal -d "%s" "$f")";
