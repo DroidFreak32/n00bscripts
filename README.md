@@ -934,8 +934,9 @@ Explanation:
 ## RSync - Sync sdcard & PC, remove deleted items in target
  - Phone to PC
 ```bash
-rsync -av --recursive -P --dry-run -e "ssh -i /data/ssh/ssh_host_rsa_key" /sdcard/ username@IP:~/Android/sdcard --delete
+rsync -av --recursive -P --dry-run -z --compress-choice=zstd -e "ssh -i /data/ssh/ssh_host_rsa_key" /sdcard/ username@IP:~/Android/sdcard --delete
 ```
+
  - PC to Phone (Needs root for `/sdcard/Android/obb` )
 ```bash
 rsync -av --recursive -P --dry-run -e  "ssh -i /sdcard/.ssh/id_ed25519" username@IP:~/Android/sdcard/ /sdcard --delete
