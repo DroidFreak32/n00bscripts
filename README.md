@@ -1,5 +1,13 @@
 # n00bscripts & configs
 
+### Slow SSH, sudo su, etc due to non-standard /tmp
+```
+# run/tmp does NOT exist!
+root@pi:/# ls -ald /tmp /run
+drwxr-xr-x 35 root root 1040 Jan 11 15:37 /run
+lrwxrwxrwx  1 root root    7 Jan 10 23:17 /tmp -> run/tmp
+```
+
 ### Tunneling HE.net ipv6 /48 over WireGuard to OpenWrt router, via a VPS to bypass CGNAT
 #### Server Side (VPS)
 1) Create a /48 tunnel in tunnelbroker.net
