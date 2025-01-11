@@ -1,7 +1,7 @@
 # n00bscripts & configs
 
 ### Slow SSH, sudo su, etc due to non-standard /tmp
-```
+```bash
 # run/tmp does NOT exist!
 root@pi:/# ls -ald /tmp /run
 drwxr-xr-x 35 root root 1040 Jan 11 15:37 /run
