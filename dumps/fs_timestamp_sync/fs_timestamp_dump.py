@@ -1,9 +1,9 @@
 import os
 import pathlib
-from datetime import datetime
+import argparse
 import json
+from datetime import datetime
 
-# pathlib version
 def get_modification_times_pathlib(path):
     """
     Recursively traverses a directory and retrieves modification times for all files using pathlib.
@@ -15,22 +15,30 @@ def get_modification_times_pathlib(path):
         A dictionary where keys are file paths relative to the input path,
         and values are datetime objects representing the last modification time.
     """
-
     modification_times = {}
-    for file_path in pathlib.Path(path).rglob("*"):  # rglob for recursive
+    for file_path in pathlib.Path(path).rglob("*"):
         if file_path.is_file():
             relative_path = file_path.relative_to(path)
             modification_times[str(relative_path)] = datetime.fromtimestamp(file_path.stat().st_mtime)
     return modification_times
 
-# Example usage:
-path_to_traverse = "/storage/pool/media"  # Replace with the actual path
-modification_times = get_modification_times_pathlib(path_to_traverse)
+def main():
+    parser = argparse.ArgumentParser(description="Traverse a directory and save file modification timestamps.")
+    parser.add_argument("path", help="Path to the directory to traverse.")
+    parser.add_argument("-o", "--output", default="file_timestamps.json", help="Output JSON file (default: file_timestamps.json)")
+    args = parser.parse_args()
 
-file_timestamps = {}
-for relative_path, modification_time in modification_times.items():
-    print(f"File: {relative_path}, Modified: {modification_time}")
-    file_timestamps[relative_path] = modification_time.timestamp()
+    path_to_traverse = args.path
+    output_file = args.output
 
-with open("file_timestamps.json", "w") as json_file:
-    json.dump(file_timestamps, json_file)
+    modification_times = get_modification_times_pathlib(path_to_traverse)
+
+    file_timestamps = {str(path): time.timestamp() for path, time in modification_times.items()}
+
+    with open(output_file, "w") as json_file:
+        json.dump(file_timestamps, json_file, indent=4)
+
+    print(f"File modification timestamps saved to {output_file}")
+
+if __name__ == "__main__":
+    main()
