@@ -1,0 +1,1 @@
+Just a golang equivalent
