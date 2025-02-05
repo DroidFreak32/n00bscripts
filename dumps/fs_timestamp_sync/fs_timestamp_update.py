@@ -1,34 +1,66 @@
 import os
-import pathlib
-from datetime import datetime
+import argparse
 import json
+from datetime import datetime
 
-def set_modification_times(path, file_timestamps):
+def get_existing_mod_times(path):
     """
-    Recursively traverses a directory and retrieves modification times for all files.
-
-    Args:
-        path: The path to the directory to traverse.
-
-    Returns:
-        A dictionary where keys are file paths relative to the input path,
-        and values are datetime objects representing the last modification time.
+    Retrieves modification times for all files in the given path.
     """
+    existing_times = {}
+    for root, _, files in os.walk(path):
+        for file in files:
+            full_path = os.path.join(root, file)
+            relative_path = os.path.relpath(full_path, path)
+            existing_times[relative_path] = os.path.getmtime(full_path)
+    return existing_times
 
-    for filename, timestamp in file_timestamps.items():
+def set_modification_times(path, file_timestamps, verbosity):
+    """
+    Sets modification times for files based on the provided timestamps, only if they differ.
+    """
+    existing_times = get_existing_mod_times(path)
+
+    for filename, new_timestamp in file_timestamps.items():
         full_path = os.path.join(path, filename)
         if not os.path.exists(full_path):
+            if verbosity:
+                print(f"VERBOSE: Skipping missing file: {full_path}")
             continue
+
         if os.path.isfile(full_path):
-            print(f"Modifying {full_path} to timestamp: {timestamp}")
-            # os.utime(full_path, (timestamp, timestamp))
+            current_timestamp = existing_times.get(filename, None)
+            if current_timestamp is not None and abs(current_timestamp - new_timestamp) == 0:
+                if verbosity:
+                    print(f"VERBOSE: Skipping unchanged file: {full_path}")
+                continue
 
-# Example usage:
-path_to_traverse = "/storage/pool/media"  # Replace with the actual path
-file_timestamps = {}
+            print(f"Updating timestamp for: {full_path} -> {new_timestamp}")
+            # os.utime(full_path, (new_timestamp, new_timestamp))  # Uncomment to apply changes
 
-with open("file_timestamps.json", "r") as json_file:
-    file_timestamps=json.load(json_file)
+def main():
+    parser = argparse.ArgumentParser(description="Set file modification times from a JSON file.")
+    parser.add_argument("path", help="Path to the target directory.")
+    parser.add_argument("-i", "--input", default="file_timestamps.json",
+                        help="JSON file containing timestamps (default: file_timestamps.json).")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging.")
 
-# print(file_timestamps)
-set_modification_times(path_to_traverse, file_timestamps)
+    args = parser.parse_args()
+    verbosity = args.verbose
+
+    # Load timestamps from JSON file
+    try:
+        with open(args.input, "r") as json_file:
+            file_timestamps = json.load(json_file)
+    except FileNotFoundError:
+        print(f"Error: JSON file '{args.input}' not found.")
+        return
+    except json.JSONDecodeError:
+        print(f"Error: Invalid JSON format in '{args.input}'.")
+        return
+
+    # Set file modification times
+    set_modification_times(args.path, file_timestamps, verbosity)
+
+if __name__ == "__main__":
+    main()
