@@ -19,7 +19,7 @@ Note: Preferably run these in a `tmux`/`screen` session
 ```bash
 GRID_VERSION_LATEST=$(gcloud storage ls gs://nvidia-drivers-us-public/GRID --format=gsutil | tail -n1)
 GRID_DRIVER_LATEST=$(gcloud storage ls  $GRID_VERSION_LATEST | grep -E "^gs.*grid.run$")
-gcloud storage cp "$GRID_VERSION_LATEST" .
+gcloud storage cp "$GRID_DRIVER_LATEST" .
 ```
 
 - Download the latest sunshine deb
