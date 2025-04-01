@@ -909,7 +909,19 @@ done
 ```bash
 for f in *; do
     EPOCH="$(exiftool -s3 -datetimeoriginal -d "%s" "$f")";
-    EPOCH_MS="$(exiftool -s3 -SubsecTimeOriginal -d "%s" "$f")";
+    EPOCH_MS="$(exiftool -s3 -SubsecTimeOriginal -d "%s" "$f" | sed 's/ //g;')";
+    MODTIME=$(date -d@$EPOCH.$EPOCH_MS "+%Y-%m-%dT%H:%M:%S.%3N")
+    echo "$f --> $MODTIME";
+    touch --date="@$EPOCH.$EPOCH_MS" "$f"
+    echo "====";
+done
+```
+
+This is for GoPro Exports:
+```bash
+for f in *.MP4; do
+    EPOCH="$(exiftool -s3 -creationdate -d "%s" "$f")";
+    EPOCH_MS=000
     MODTIME=$(date -d@$EPOCH.$EPOCH_MS "+%Y-%m-%dT%H:%M:%S.%3N")
     echo "$f --> $MODTIME";
     touch --date="@$EPOCH.$EPOCH_MS" "$f"
