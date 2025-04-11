@@ -130,5 +130,25 @@ do
     echo "NEW: SubSecModifyDate = $SubSecModifyDate"
 done
 
-exiftool -o DATECORRECTED/"$i"
+
+#Modify exif to add timezone info
+add() { n="$@"; bc <<< "${n// /+}"; }
+for i in *.jpg;
+do
+    TIMESTAMP="$(echo ${i:4:18} | sed 's/_//g;')";
+    MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}.${TIMESTAMP:14:3}"
+    EPOCH_UTC=$(date +"%s.%3N" -d $MODTIME)
+    EPOCH_S="${EPOCH_UTC::-4}"
+    EPOCH_MS="${EPOCH_UTC: -3}"
+    EPOCH_TZ=$(add $EPOCH_UTC 19800.000)
+    EXIFTIME="$(date -d@$EPOCH_TZ "+%Y:%m:%d %H:%M:%S.%3N+05:30")"
+    exiftool -o DATECORRECTED/"$i" -OffsetTime="+05:30" \
+    -OffsetTimeOriginal="+05:30" \
+    -OffsetTimeDigitized="+05:30" \
+    -SubSecCreateDate="$EXIFTIME" \
+    -SubSecDateTimeOriginal="$EXIFTIME" \
+    -SubSecModifyDate="$EXIFTIME" \
+    "$i"
+done
+
 ```
