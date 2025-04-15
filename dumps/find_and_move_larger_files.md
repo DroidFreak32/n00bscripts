@@ -28,23 +28,16 @@ done
 set -euo pipefail
 
 # Define the path to the directory to compare against
-PATH_TO_COMPARE="../2020/PRESENT"
+PATH_TO_COMPARE="$1"
 # Define the destination directory for larger files
-MOVE_DEST_DIR="larger"
+LARGER_MOVE_DEST_DIR="larger"
+SMALLER_MOVE_DEST_DIR="smaller"
 
 # --- Input Validation and Setup ---
 
 # Check if the comparison directory exists and is a directory
 if [[ ! -d "$PATH_TO_COMPARE" ]]; then
     echo "Error: Comparison directory '$PATH_TO_COMPARE' does not exist or is not a directory." >&2
-    exit 1
-fi
-
-# Optional: Create the destination directory if it doesn't exist
-# Use -p to avoid error if it already exists and create parent directories if needed
-mkdir -p "$MOVE_DEST_DIR"
-if [[ ! -d "$MOVE_DEST_DIR" ]]; then
-    echo "Error: Failed to create destination directory '$MOVE_DEST_DIR'." >&2
     exit 1
 fi
 
@@ -72,6 +65,15 @@ for ref_file in *; do
         # Compare sizes numerically
         # Check if the file in the current directory is strictly larger
         if [[ "$ref_size" -gt "$dup_size" ]]; then
+
+            # Optional: Create the destination directory if it doesn't exist
+            # Use -p to avoid error if it already exists and create parent directories if needed
+            mkdir -p "$LARGER_MOVE_DEST_DIR"
+            if [[ ! -d "$LARGER_MOVE_DEST_DIR" ]]; then
+                echo "Error: Failed to create destination directory '$LARGER_MOVE_DEST_DIR'." >&2
+                exit 1
+            fi
+
             printf "File '%s' (%s bytes) is larger than '%s' (%s bytes).\n" \
                    "$ref_file" "$ref_size" "$dup_file" "$dup_size"
 
@@ -81,10 +83,30 @@ for ref_file in *; do
 
             # Move the larger file (-v: verbose, -i: interactive/prompt)
             # Use the variable for the destination directory
-            echo mv -vi "$ref_file" "$MOVE_DEST_DIR/"
+            echo mv -vi "$ref_file" "$LARGER_MOVE_DEST_DIR/"
 
             echo # Add a blank line for better separation
+        else
+            # Optional: Create the destination directory if it doesn't exist
+            # Use -p to avoid error if it already exists and create parent directories if needed
+            mkdir -p "$SMALLER_MOVE_DEST_DIR"
+            if [[ ! -d "$SMALLER_MOVE_DEST_DIR" ]]; then
+                echo "Error: Failed to create destination directory '$SMALLER_MOVE_DEST_DIR'." >&2
+                exit 1
+            fi
+
+            printf "File '%s' (%s bytes) is SMALLER than '%s' (%s bytes).\n" \
+                   "$ref_file" "$ref_size" "$dup_file" "$dup_size"
+
+            # Show details using ls -lh for human-readable sizes
+            ls -lh "$ref_file"
+            ls -lh "$dup_file"
+
+            # Move the smaller file (-v: verbose, -i: interactive/prompt)
+            # Use the variable for the destination directory
+            echo mv -vi "$ref_file" "$SMALLER_MOVE_DEST_DIR/"
         fi
+
     fi
 done
 
