@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-RUN apt update && apt install -y curl dialog
+RUN apt update && apt install -y curl dialog rclone
 
 RUN curl -fsSL https://tailscale.com/install.sh | sh
 
