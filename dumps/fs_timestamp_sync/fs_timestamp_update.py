@@ -36,7 +36,8 @@ def set_modification_times(path, file_timestamps, verbosity):
                 continue
 
             print(f"Updating timestamp for: {full_path} -> {new_timestamp}")
-            # os.utime(full_path, (new_timestamp, new_timestamp))  # Uncomment to apply changes
+            if actually_update:
+                os.utime(full_path, (new_timestamp, new_timestamp))  # Uncomment to apply changes
 
 def main():
     parser = argparse.ArgumentParser(description="Set file modification times from a JSON file.")
@@ -44,9 +45,11 @@ def main():
     parser.add_argument("-i", "--input", default="file_timestamps.json",
                         help="JSON file containing timestamps (default: file_timestamps.json).")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging.")
+    parser.add_argument("-y", "--yes", action="store_true", help="Actually replace the timestamps.")
 
     args = parser.parse_args()
     verbosity = args.verbose
+    actually_update = args.yes
 
     # Load timestamps from JSON file
     try:
