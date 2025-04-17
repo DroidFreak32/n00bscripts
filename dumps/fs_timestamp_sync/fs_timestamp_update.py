@@ -3,6 +3,8 @@ import argparse
 import json
 from datetime import datetime
 
+actually_update = False
+
 def get_existing_mod_times(path):
     """
     Retrieves modification times for all files in the given path.
