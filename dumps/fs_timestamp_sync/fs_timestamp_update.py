@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import decimal
 import argparse
 import json
 from datetime import datetime
@@ -22,7 +23,8 @@ def set_modification_times(path, file_timestamps, verbosity, actually_update):
     """
     existing_times = get_existing_mod_times(path)
 
-    for filename, new_timestamp in file_timestamps.items():
+    for filename, new_timestamp_str in file_timestamps.items():
+        new_timestamp = decimal.Decimal(new_timestamp_str)
         full_path = os.path.join(path, filename)
         if not os.path.exists(full_path):
             if verbosity:
