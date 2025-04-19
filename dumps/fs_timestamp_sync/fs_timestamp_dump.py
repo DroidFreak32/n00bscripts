@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import os
+import decimal
 import pathlib
 import argparse
 import json
@@ -19,7 +21,7 @@ def get_modification_times_pathlib(path):
     for file_path in pathlib.Path(path).rglob("*"):
         if file_path.is_file():
             relative_path = file_path.relative_to(path)
-            modification_times[str(relative_path)] = datetime.fromtimestamp(file_path.stat().st_mtime)
+            modification_times[str(relative_path)] = decimal.Decimal(file_path.stat().st_mtime_ns)/1000000000
     return modification_times
 
 def main():
@@ -33,7 +35,7 @@ def main():
 
     modification_times = get_modification_times_pathlib(path_to_traverse)
 
-    file_timestamps = {str(path): time.timestamp() for path, time in modification_times.items()}
+    file_timestamps = {str(path): str(time) for path, time in modification_times.items()}
 
     with open(output_file, "w") as json_file:
         json.dump(file_timestamps, json_file, indent=4)
