@@ -1,9 +1,8 @@
+#!/usr/bin/env python3
 import os
 import argparse
 import json
 from datetime import datetime
-
-actually_update = False
 
 def get_existing_mod_times(path):
     """
@@ -17,7 +16,7 @@ def get_existing_mod_times(path):
             existing_times[relative_path] = os.path.getmtime(full_path)
     return existing_times
 
-def set_modification_times(path, file_timestamps, verbosity):
+def set_modification_times(path, file_timestamps, verbosity, actually_update):
     """
     Sets modification times for files based on the provided timestamps, only if they differ.
     """
@@ -65,7 +64,7 @@ def main():
         return
 
     # Set file modification times
-    set_modification_times(args.path, file_timestamps, verbosity)
+    set_modification_times(args.path, file_timestamps, verbosity, actually_update)
 
 if __name__ == "__main__":
     main()
