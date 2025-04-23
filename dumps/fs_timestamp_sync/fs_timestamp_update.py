@@ -32,7 +32,7 @@ def set_modification_times(path, file_timestamps, verbosity, actually_update):
             continue
 
         if os.path.isfile(full_path):
-            current_timestamp = existing_times.get(filename, None)
+            current_timestamp = decimal.Decimal(existing_times.get(filename, None))
             if current_timestamp is not None and abs(current_timestamp - new_timestamp) == 0:
                 if verbosity:
                     print(f"VERBOSE: Skipping unchanged file: {full_path}")
