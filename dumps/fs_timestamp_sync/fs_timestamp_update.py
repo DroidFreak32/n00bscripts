@@ -40,8 +40,9 @@ def set_modification_times(path, file_timestamps, verbosity, actually_update):
 
             print(f"Updating timestamp for: {full_path} -> {new_timestamp}")
             if actually_update:
-                os.utime(full_path, (new_timestamp, new_timestamp))  # Uncomment to apply changes
-
+                new_timestamp_ns=int(new_timestamp*1000000000)
+                print(f"New Time: {new_timestamp_ns}")
+                os.utime(full_path, ns=(new_timestamp_ns, new_timestamp_ns))
 def main():
     parser = argparse.ArgumentParser(description="Set file modification times from a JSON file.")
     parser.add_argument("path", help="Path to the target directory.")
