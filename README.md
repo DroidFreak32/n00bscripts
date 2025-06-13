@@ -169,6 +169,39 @@ While the speed is low, I guess this is more stable and reliable.
 
 ---
 
+### Router Advertisement leaking into port accepting only VLAN-tagged frames.
+
+This is actually working as intended, I just did not realize why at the time.
+
+Context: My laptop is connected to switch on Port 1, Switch's Port 8 is connected to my router (OpenWrt) on the router's eth2 port, with my main VLAN 5 set to Tagged:
+
+![openwrt](./images/openwrt_ra_leak_config.png)
+
+Switch Port 1 is configured to only allow TAGGED frames, i.e. unless I add a VLAN interface on my laptop's NIC it should not be getting any traffic..:
+
+![zyxel](./images/zyxel_ra_leak_config.png)
+
+.. or so I thought, but turns out I was getting Router Advertisements causing the NIC get an IPv6 Address. IPv4 still ended with APIPA:
+
+```
+03:47:21.121112 22:XX:XX:XX:XX:05 > 33:33:00:00:00:01, ethertype IPv6 (0x86dd), length 142: (flowlabel 0xcb39e, hlim 255, next-header ICMPv6 (58) payload length: 88) fe80::XX:XX:XX:505 > ff02::1: [icmp6 sum ok] ICMP6, router advertisement, length 88
+	hop limit 64, Flags [none], pref high, router lifetime 3600s, reachable time 0ms, retrans timer 0ms
+	  prefix info option (3), length 32 (4): 2405:XX:XX:XX::/64, Flags [onlink, auto], valid time 7484s, pref. time 7484s
+	  rdnss option (25), length 24 (3):  lifetime 7484s, addr: fd19:XX:XX::XX
+	  mtu option (5), length 8 (1):  1500
+	  source link-address option (1), length 8 (1): 22:XX:XX:XX:XX:05
+```
+
+##### Reason
+The config on my switch "Tag Only" is only for Incoming frames in the Port, not outgoing frames. RAs are multicast originating from the router, so these untagged RAs can enter the switch from Trunk(?) Port 8 and end up being multicast into Port 1.
+
+To prove this I tried to Ping a non-existant IP in my subnet to trigger an ARP broadcast, which I was indeed able to see from tcpdump. 
+```
+03:47:30.102649 22:XX:XX:XX:XX:05 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 60: Ethernet (len 6), IPv4 (len 4), Request who-has 192.XX.XX.XX tell 192.XX.XX.XX, length 46
+```
+
+---
+
 ### Cloudflare Wildcard DNS जुगाड़ through a [Tailscale](https://tailscale.com/) node
 
 1) Fetch the Tailscale Node's IP address from your [admin console](https://login.tailscale.com/admin/machines)
@@ -178,6 +211,7 @@ Now you can run a reverse proxy like [NginxProxyManager](https://github.com/Ngin
 Just use the source as `<servicename>.homelab.\<tailnet domain>`
 
 ![Screenshot](./images/npm.png)
+
 ---
 
 ### Fun with ISP's Nokia router.
@@ -247,7 +281,9 @@ ip link set dev eth100 up
 # cat /etc/ppp/peers/dsl-provider | grep nic
 nic-eth_100
 ```
+
 ---
+
 ### Setting HTTP(s) Proxy for Dockerd on OpenWrt
 ```
 # Modify the start_service() function to look like this:
