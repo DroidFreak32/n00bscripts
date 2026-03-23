@@ -2,7 +2,7 @@
 
 ### Docker images
 
-### Getting latest cmdline tools and setting up ANDROID_HOME:
+#### Getting latest cmdline tools and setting up ANDROID_HOME:
 
 I used the `mirror.gcr.io/gradle:9.4-jdk21-noble` image
 
@@ -27,4 +27,13 @@ mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 
 yes | sdkmanager --licenses > /dev/null
+sdkmanager "build-tools;36.0.0" "platforms;android-36"
+```
+
+#### Building & Signing APKs 
+
+```bash
+export PATH=$ANDROID_HOME/build-tools/36.0.0:$PATH
+zipalign -v -p 4 /path/to/unsigned-apk.apk app-zipaligned.apk
+apksigner sign --key releasekey.pk8 --cert releasekey.x509.pem --out app-signed.apk app-zipaligned.apk
 ```
