@@ -26,6 +26,32 @@ extras(){
     repo forall -v -g EXTRAS -c 'echo $REPO_PATH'
 }
 ```
+
+### Repo analysis
+```bash
+
+# Syncs current head to gerrit at specific branch
+alias gfor='git push lgerrit:`repoproj .` HEAD:refs/for/lineage-22.2'
+
+# Syncs current upstream lineage branch to gerrit
+alias glin='git push lgerrit:`repoproj .` LineageOS/lineage-22.2:refs/heads/lineage-22.2 -o skip-validation=true'
+
+
+lineage_forks() {
+    repo forall -v -g linfork -c "echo \$REPO_PATH"
+}
+
+# Set Upstream Remote
+for i in `lineage_forks`; do git -C "$i" remote add LineageOS https://github.com/$(repoproj "$i"); done
+
+# Fetch upstream
+for i in `lineage_forks`; do echo "=== $i ==="; git -C "$i" fetch LineageOS lineage-22.2; done
+
+# Check current branches of all lineage forks
+for i in `lineage_forks`; do echo "=== $i ==="; git -C $i log --oneline -1; done
+
+# Update 
+```
 ### compare missing commits between repos
 
 ```bash
