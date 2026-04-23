@@ -1,56 +1,114 @@
 ```bash
+find . -type f -iname "*.jpg" -o -iname "*.mp4" -o -iname "*.NEF" -o -iname "*.MOV" -o -iname "*.JPG"
+find . -type f | grep -vE ".jpg|.mp4|.NEF|.MOV|.JPG|.MP4"
 
-for f in *.JPG; do
+grep -vE ".jpg|.mp4|.NEF|.MOV|.JPG"
+
+find . -type f \( -iname "*.jpg" -o -iname "*.mp4" -o -iname "*.NEF" -o -iname "*.MOV" -o -iname "*.JPG" -o -iname "*.MP4" \)
+
+#for f in *.png *.jpg *.jpeg *.dng *.NEF *.HEIC; do
+for f in *; do
     EPOCH="$(exiftool -s3 -datetimeoriginal -d "%s" "$f")";
     EPOCH_MS="$(exiftool -s3 -SubsecTimeOriginal -d "%s" "$f" | sed 's/ //g;')";
     MODTIME=$(date -d@$EPOCH.$EPOCH_MS "+%Y-%m-%dT%H:%M:%S.%3N")
     echo "$f --> $MODTIME";
-    touch --date="@$EPOCH.$EPOCH_MS" "$f"
+    touch -c --date="@$EPOCH" "$f"
+    touch -c --date="@$EPOCH.$EPOCH_MS" "$f"
     echo "====";
 done
 
-for i in *.mp4;
+for i in *.MP4;
 do
     TIMESTAMP="$(echo ${i:4:18} | sed 's/_//g;')";
     MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}.${TIMESTAMP:14:3}"
+    echo "$i --> $MODTIME";
+    echo touch -c -d "$MODTIME" "$i"
+    echo "====";
+done
+
+
+# no MS
+for i in *.3gp;
+do
+    TIMESTAMP="$(echo ${i:4:18} | sed 's/_//g;')";
+    MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}"
     echo "$i --> $MODTIME";
     touch -c -d "$MODTIME" "$i"
     echo "====";
 done
 
+# Samsung no MS 20170730_111252.mp4
+for i in *;
+do
+    TIMESTAMP="$(echo ${i:0:15} | sed 's/_//g;')";
+    MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}"
+    echo "$i --> $MODTIME";
+    echo touch -c -d "$MODTIME" "$i"
+    echo "====";
+done
+
+
 # For PXL_ and offset date
 
 add() { n="$@"; bc <<< "${n// /+}"; }
-for i in *.jpg;
+for i in PXL_2025*.mp4;
 do
     TIMESTAMP="$(echo ${i:4:18} | sed 's/_//g;')";
     MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}.${TIMESTAMP:14:3}"
     EPOCH_OLD=$(date +"%s.%3N" -d $MODTIME)
     EPOCH=$(add $EPOCH_OLD 19800.000)
+    #EPOCH=$(add $EPOCH_OLD 0.0)
     echo "$i --> $(date -d@$EPOCH)"
-    touch --date="@$EPOCH" "$i"
+    echo touch -c --date="@$EPOCH" "$i"
     echo "====";
 done
 
+# Oneplus VIDYYYYDDMMhhmmss.mp4
 
+for i in VID*.mp4;
+do
+    TIMESTAMP="${i:3:14}";
+    MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}"
+    EPOCH_OLD=$(date +"%s.%3N" -d $MODTIME)
+    #EPOCH=$(add $EPOCH_OLD 19800.000)
+    EPOCH=$(add $EPOCH_OLD 0.0)
+    echo "$i --> $(date -d@$EPOCH)"
+    touch -c --date="@$EPOCH" "$i"
+    echo "====";
+done
+
+# For PXL_ and offset date using Exif
+add() { n="$@"; bc <<< "${n// /+}"; }
+for i in *.mp4;
+do
+    TIMESTAMP="$(echo ${i:4:18} | sed 's/_//g;')";
+    TIMESTAMP_NS=${TIMESTAMP:14:3}
+    EPOCH_OLD="$(exiftool -api largefilesupport=1 -s3 -createdate -d "%s" "$i")";
+    EPOCH=$(add $EPOCH_OLD 19800.$TIMESTAMP_NS)
+    echo "$i --> $(date -d@$EPOCH)"
+    #touch -c --date="@$EPOCH" "$i"
+    echo "====";
+done
+
+# Other + offset date
 for f in *.MP4; do
     EPOCH="$(exiftool -api largefilesupport=1 -s3 -createdate -d "%s" "$f")";
     EPOCH_MS=000
     MODTIME=$(date -d@$EPOCH.$EPOCH_MS "+%Y-%m-%dT%H:%M:%S.%3N")
     echo "$f --> $MODTIME";
-    touch --date="@$EPOCH.$EPOCH_MS" "$f"
+    echo touch --date="@$EPOCH.$EPOCH_MS" "$f"
     echo "====";
 done
 
 
-# P& only
-for f in *.mp4 *.MP4; do
+# P7 only
+for f in *.MOV; do
     EPOCH_OLD="$(exiftool -api largefilesupport=1 -s3 -createdate -d "%s" "$f")";
     EPOCH=$(($EPOCH_OLD + 19800))
     EPOCH_MS=000
     MODTIME=$(date -d@$EPOCH.$EPOCH_MS "+%Y-%m-%dT%H:%M:%S.%3N")
     echo "$f --> $MODTIME";
-    touch --date="@$EPOCH.$EPOCH_MS" "$f"
+    touch -c --date="@$EPOCH.$EPOCH_MS" "$f"
     echo "====";
 done
 
@@ -111,6 +169,8 @@ SubSecModifyDate                : 2024:11:23 11:29:42.6990
 GPSDateTime                     : 2024:11:23 05:24:30Z
 
 
+
+
 OffsetTime="+05:30"
 OffsetTimeOriginal="+05:30"
 OffsetTimeDigitized="+05:30"
@@ -130,18 +190,17 @@ do
     echo "NEW: SubSecModifyDate = $SubSecModifyDate"
 done
 
-
-#Modify exif to add timezone info
-add() { n="$@"; bc <<< "${n// /+}"; }
-for i in *.jpg;
+for i in *.HIEC;
 do
-    TIMESTAMP="$(echo ${i:4:18} | sed 's/_//g;')";
-    MODTIME="${TIMESTAMP:0:4}-${TIMESTAMP:4:2}-${TIMESTAMP:6:2}T${TIMESTAMP:8:2}:${TIMESTAMP:10:2}:${TIMESTAMP:12:2}.${TIMESTAMP:14:3}"
-    EPOCH_UTC=$(date +"%s.%3N" -d $MODTIME)
-    EPOCH_S="${EPOCH_UTC::-4}"
-    EPOCH_MS="${EPOCH_UTC: -3}"
-    EPOCH_TZ=$(add $EPOCH_UTC 19800.000)
-    EXIFTIME="$(date -d@$EPOCH_TZ "+%Y:%m:%d %H:%M:%S.%3N+05:30")"
+    SubSecCreateDate="$(exiftool -s3 -SubSecCreateDate "$i")"
+    SubSecCreateDate="${SubSecCreateDate::-1}+05:30"
+
+    SubSecDateTimeOriginal="$(exiftool -s3 -SubSecDateTimeOriginal "$i")"
+    SubSecDateTimeOriginal="${SubSecDateTimeOriginal::-1}+05:30"
+    
+    SubSecModifyDate="$(exiftool -s3 -SubSecModifyDate "$i")"
+    SubSecModifyDate="${SubSecModifyDate::-1}+05:30"
+
     exiftool -o DATECORRECTED/"$i" -OffsetTime="+05:30" \
     -OffsetTimeOriginal="+05:30" \
     -OffsetTimeDigitized="+05:30" \
@@ -150,5 +209,61 @@ do
     -SubSecModifyDate="$EXIFTIME" \
     "$i"
 done
+
+
+
+for i in *; do
+ TIMESTAMP=$(grep "$i" metadata_wallpaper.json | jq -r .photoTakenTime.timestamp) ; touch -c -d@$TIMESTAMP "$i"
+done
+ FILE=IMG_20180922_182436-COLLAGE.jpg
+ TIMESTAMP=$(grep $FILE metadata-2023.json | jq -r .photoTakenTime.timestamp)
+ touch -c -d@$TIMESTAMP $FILE
+ FILE=IMG_20210821_143938-COLLAGE.jpg
+ TIMESTAMP=$(grep $FILE metadata-2023.json | jq -r .photoTakenTime.timestamp)
+ touch -c -d@$TIMESTAMP $FILE
+ FILE=IMG_20191006_201146-COLLAGE.jpg
+ TIMESTAMP=$(grep $FILE metadata-2023.json | jq -r .photoTakenTime.timestamp)
+ touch -c -d@$TIMESTAMP $FILE
+
+
+for i in *.MOV; do
+    EXIFTIME=$(exiftool -api largefilesupport=1 -s3 -createdate -d "%Y-%m-%dT%H:%M:%S.000+05:30" "$i")
+    exiftool -o timed/"$i" \
+ -ModifyDate="$EXIFTIME" \
+ -DateTimeOriginal="$EXIFTIME" \
+ -CreateDate="$EXIFTIME" \
+ -SubSecTimeOriginal="$EXIFTIME" \
+ -SubSecTimeDigitized="$EXIFTIME" \
+ -GPSTimeStamp="$EXIFTIME" \
+ -GPSDateStamp="$EXIFTIME" \
+ -ProfileDateTime="$EXIFTIME" \
+ -SubSecCreateDate="$EXIFTIME" \
+ -SubSecDateTimeOriginal="$EXIFTIME" \
+ -TrackCreateDate="$EXIFTIME" \
+ -TrackModifyDate="$EXIFTIME" \
+ -MediaCreateDate="$EXIFTIME" \
+ -MediaModifyDate="$EXIFTIME" \
+ -CreationDate="$EXIFTIME" \
+ -GPSDateTime="$EXIFTIME" "$i"; done
+
+
+for i in *.mp4; do exiftool -o timed/"$i" \
+ -ModifyDate="2019-06-12T17:00:00.000+05:30" \
+ -DateTimeOriginal="2019-06-12T17:00:00.000+05:30" \
+ -CreateDate="2019-06-12T17:00:00.000+05:30" \
+ -SubSecTimeOriginal="2019-06-12T17:00:00.000+05:30" \
+ -SubSecTimeDigitized="2019-06-12T17:00:00.000+05:30" \
+ -GPSTimeStamp="2019-06-12T17:00:00.000+05:30" \
+ -GPSDateStamp="2019-06-12T17:00:00.000+05:30" \
+ -ProfileDateTime="2019-06-12T17:00:00.000+05:30" \
+ -SubSecCreateDate="2019-06-12T17:00:00.000+05:30" \
+ -SubSecDateTimeOriginal="2019-06-12T17:00:00.000+05:30" \
+ -TrackCreateDate="2019-06-12T17:00:00.000+05:30" \
+ -TrackModifyDate="2019-06-12T17:00:00.000+05:30" \
+ -MediaCreateDate="2019-06-12T17:00:00.000+05:30" \
+ -MediaModifyDate="2019-06-12T17:00:00.000+05:30" \
+ -CreationDate="2019-06-12T17:00:00.000+05:30" \
+ -GPSDateTime="2019-06-12T17:00:00.000+05:30" "$i"; done
+
 
 ```
