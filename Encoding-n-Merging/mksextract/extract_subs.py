@@ -24,6 +24,18 @@ CODEC_EXT = {
     'SubStationAlpha': 'ass',
 }
 
+BITMAP_CODECS = {'VobSub', 'HDMV PGS'}
+TEXT_CODECS   = {'SubRip/SRT', 'SubStationAlpha'}
+
+# User-facing codec aliases for --skip-codecs
+CODEC_ALIASES = {
+    'pgs':    'HDMV PGS',
+    'vobsub': 'VobSub',
+    'srt':    'SubRip/SRT',
+    'ass':    'SubStationAlpha',
+    'ssa':    'SubStationAlpha',
+}
+
 # Known 2-letter IETF language codes used to detect language suffix in .mks filenames.
 LANG_CODES_2 = {
     'en', 'fr', 'de', 'es', 'it', 'ja', 'zh', 'ko', 'pt', 'nl', 'ru',
@@ -61,7 +73,6 @@ def parse_json_dump(filepath):
         chunk = content[pos:].lstrip()
         if not chunk:
             break
-        skipped = len(content) - len(content[pos:])
         # account for lstrip offset
         lstripped = len(content[pos:]) - len(chunk)
         try:
@@ -204,12 +215,18 @@ def build_output_stem(base, lang, flags, title):
     return '.'.join(parts)
 
 
-def build_plan(records):
+def build_plan(records, output_dir=None, skip_redundant_bitmaps=False, skip_codecs=None):
     """
     For every track in every .mks file, produce a dict describing the extraction.
-    Returns list of extraction items.
+    Returns (plan, n_skipped_redundant, n_skipped_codec).
+
+    skip_redundant_bitmaps: drop bitmap tracks when a text track exists for the
+                            same language in the same .mks file.
+    skip_codecs:            set of internal codec names to drop entirely.
     """
     plan = []
+    n_skipped_redundant = 0
+    n_skipped_codec = 0
 
     for rec in records:
         mks_path = Path(rec['file_name'])
@@ -220,7 +237,15 @@ def build_plan(records):
 
         mks_stem = mks_path.stem                  # e.g. "Movie.en"
         base = stem_base(mks_stem)                # e.g. "Movie"
-        out_dir = mks_path.parent
+        if output_dir is not None:
+            out_dir = Path(output_dir) / mks_path.parent
+        else:
+            out_dir = mks_path.parent
+
+        # Languages that have at least one text track in this file (for redundant-bitmap check)
+        langs_with_text = {
+            get_track_lang(t) for t in tracks if t['codec'] in TEXT_CODECS
+        } if skip_redundant_bitmaps else set()
 
         # Track output stems for collision detection (within this .mks file)
         used_stems = {}
@@ -235,7 +260,16 @@ def build_plan(records):
                       file=sys.stderr)
                 continue
 
+            if skip_codecs and codec in skip_codecs:
+                n_skipped_codec += 1
+                continue
+
             lang = get_track_lang(track)
+
+            if skip_redundant_bitmaps and codec in BITMAP_CODECS and lang in langs_with_text:
+                n_skipped_redundant += 1
+                continue
+
             flags, title = classify_track(track)
 
             out_stem = build_output_stem(base, lang, flags, title)
@@ -246,10 +280,13 @@ def build_plan(records):
             used_stems[out_stem] = track_id
 
             # Full output path handed to mkvextract:
-            # - VobSub: no extension (mkvextract appends .idx + .sub automatically)
+            # - VobSub: pass {stem}.idx so mkvextract strips .idx and creates
+            #   {stem}.idx + {stem}.sub. Without the explicit .idx suffix,
+            #   mkvextract strips the last dot-segment of whatever path we give
+            #   it (e.g. "Movie.en" → creates "Movie.idx"/"Movie.sub", losing .en).
             # - Others: with extension
             if ext is None:
-                mkvextract_out = str(out_dir / out_stem)
+                mkvextract_out = str(out_dir / f'{out_stem}.idx')
                 display_out = f'{out_dir / out_stem}.{{idx,sub}}'
             else:
                 mkvextract_out = str(out_dir / f'{out_stem}.{ext}')
@@ -267,16 +304,12 @@ def build_plan(records):
                 'ext': ext,
             })
 
-    return plan
+    return plan, n_skipped_redundant, n_skipped_codec
 
 
 def check_output_exists(item):
     """Return True if the output file(s) already exist."""
-    out = item['mkvextract_out']
-    if item['ext'] is None:
-        # VobSub: check for .idx
-        return Path(out + '.idx').exists()
-    return Path(out).exists()
+    return Path(item['mkvextract_out']).exists()
 
 
 def run_plan(plan, execute=False, delete_mks=False, skip_existing=True):
@@ -289,7 +322,6 @@ def run_plan(plan, execute=False, delete_mks=False, skip_existing=True):
     key = lambda x: x['mks_path']
     grouped = groupby(sorted(plan, key=key), key=key)
 
-    total = len(plan)
     done = 0
     skipped = 0
     errors = 0
@@ -324,6 +356,7 @@ def run_plan(plan, execute=False, delete_mks=False, skip_existing=True):
                    f"{item['track_id']}:{item['mkvextract_out']}"]
             print(f"{prefix}Extracting: {track_info}")
             print(f"{prefix}  -> {out}")
+            Path(item['mkvextract_out']).parent.mkdir(parents=True, exist_ok=True)
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
                 print(f"{prefix}  ERROR: {result.stderr.strip()}")
@@ -348,11 +381,36 @@ def run_plan(plan, execute=False, delete_mks=False, skip_existing=True):
                 print(f"  ERROR deleting {mks_path}: {e}")
 
 
+def parse_arg_value(args, flag):
+    """Return value for --flag=value or --flag value, or None if absent."""
+    for i, arg in enumerate(args):
+        if arg.startswith(f'{flag}='):
+            return arg.split('=', 1)[1]
+        if arg == flag and i + 1 < len(args):
+            return args[i + 1]
+    return None
+
+
 def main():
     args = sys.argv[1:]
     execute = '--execute' in args
     delete_mks = '--delete-mks' in args
     skip_existing = '--no-skip' not in args
+    skip_redundant_bitmaps = '--skip-redundant-bitmaps' in args
+
+    output_dir = parse_arg_value(args, '--output-dir')
+
+    skip_codecs = set()
+    raw_skip = parse_arg_value(args, '--skip-codecs')
+    if raw_skip:
+        for name in raw_skip.split(','):
+            name = name.strip().lower()
+            internal = CODEC_ALIASES.get(name)
+            if internal:
+                skip_codecs.add(internal)
+            else:
+                print(f"WARNING: unknown codec {name!r}. Valid: {', '.join(sorted(CODEC_ALIASES))}",
+                      file=sys.stderr)
 
     dump_file = 'all_mks_subs_dump.json'
     if not Path(dump_file).exists():
@@ -363,8 +421,18 @@ def main():
     records = parse_json_dump(dump_file)
     print(f"Found {len(records)} .mks files.")
 
-    plan = build_plan(records)
-    print(f"Planned {len(plan)} track extractions.")
+    plan, n_skipped_redundant, n_skipped_codec = build_plan(
+        records,
+        output_dir=output_dir,
+        skip_redundant_bitmaps=skip_redundant_bitmaps,
+        skip_codecs=skip_codecs,
+    )
+    print(f"Planned {len(plan)} track extractions"
+          + (f" ({n_skipped_codec} codec-skipped)" if n_skipped_codec else "")
+          + (f" ({n_skipped_redundant} redundant-bitmap-skipped)" if n_skipped_redundant else "")
+          + ".")
+    if output_dir:
+        print(f"Output directory: {output_dir}")
 
     run_plan(plan, execute=execute, delete_mks=delete_mks, skip_existing=skip_existing)
 

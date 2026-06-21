@@ -1,4 +1,4 @@
-# mkssubs — Context
+# mkssubs — Claude Context
 
 ## Project purpose
 
@@ -11,6 +11,7 @@ Extract subtitles from `.mks` files and rename them for Jellyfin compatibility. 
 | `extract_subs.py` | Main extraction script |
 | `all_mks_subs_dump.json` | Pre-built mediainfo JSON dump of all `.mks` files |
 | `JF_NAMING.md` | Jellyfin external subtitle naming reference |
+| `CONTEXT.md` | This file — implementation reference for Claude |
 
 ## extract_subs.py — implementation details
 
@@ -38,7 +39,7 @@ For each subtitle track in each `.mks` file:
 
 6. **Collision resolution** — a per-`.mks`-file dict tracks used stems. If a stem is already taken, `.trackN` (where N is the track id) is appended.
 
-7. **Extension** — `VobSub` → no extension passed to mkvextract (it auto-creates `.idx` + `.sub`); `HDMV PGS` → `.sup`; `SubRip/SRT` → `.srt`; `SubStationAlpha` → `.ass`.
+7. **Extension** — `VobSub` → `{stem}.idx` is passed to mkvextract (mkvextract strips the last dot-segment from whatever path it receives, so passing `.idx` makes it strip that and create `{stem}.idx` + `{stem}.sub`); `HDMV PGS` → `.sup`; `SubRip/SRT` → `.srt`; `SubStationAlpha` → `.ass`.
 
 ### mkvextract invocation
 
@@ -46,15 +47,30 @@ For each subtitle track in each `.mks` file:
 mkvextract tracks <mks_path> <track_id>:<output_path>
 ```
 
-For VobSub, `output_path` has no extension; mkvextract creates `output_path.idx` and `output_path.sub`.
+For VobSub, `output_path` is `{stem}.idx`. mkvextract always strips the last dot-segment from the VobSub output path, so passing `{stem}.idx` causes it to create `{stem}.idx` and `{stem}.sub`. Passing a bare `{stem}` (no extension) would cause mkvextract to strip the last real segment (e.g. `.en` or `.forced`), producing files with the wrong name.
 
-### Flags
+### Output directory
+
+By default, extracted files are written to the same directory as the source `.mks` file. When `--output-dir=<dir>` is passed, `build_plan` prepends the output root to `mks_path.parent`:
+
+```python
+out_dir = Path(output_dir) / mks_path.parent
+```
+
+This preserves the full relative directory structure under the output root (e.g. `Movies/X/Y/Movie.en.mks` → `output/Movies/X/Y/Movie.en.srt`). The output directory is created with `mkdir(parents=True, exist_ok=True)` just before each `mkvextract` call.
+
+### CLI flags
 
 | Flag | Effect |
 |---|---|
 | `--execute` | Actually run mkvextract (default is dry-run) |
 | `--delete-mks` | Delete `.mks` file after all its tracks extract successfully |
 | `--no-skip` | Re-extract even if output file already exists |
+| `--output-dir <dir>` | Write extracted files under `<dir>`, preserving relative structure |
+| `--skip-redundant-bitmaps` | Drop bitmap tracks (PGS/VobSub) when a text track (SRT/ASS) exists for the same language in the same `.mks` |
+| `--skip-codecs=<list>` | Drop entire codec types; comma-separated from `pgs`, `vobsub`, `srt`, `ass`/`ssa` |
+
+Both flags apply in `build_plan` before any extraction, so the dry-run count reflects them. `--skip-codecs` is evaluated first; `--skip-redundant-bitmaps` then applies to whatever bitmap tracks remain. `langs_with_text` is built from all text tracks in the file regardless of `--skip-codecs`, so a file with SRT + PGS will still treat the PGS as redundant even if SRT is also being skipped.
 
 ### Known edge cases
 
