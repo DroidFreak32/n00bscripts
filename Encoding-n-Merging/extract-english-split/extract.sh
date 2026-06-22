@@ -40,15 +40,16 @@ fi
 
 echo "✓ TrueHD audio: 0:$TRUEHD"
 
-# Get English EAC3 audio
-EAC3=$(echo "$STREAMS" | jq -r '.streams[] | select(.codec_type=="audio" and .codec_name=="eac3" and (.tags.language=="eng" or .tags.language==null or .tags.language=="")) | .index' | head -1)
+# Get English EAC3 audio (pick the one with most channels if multiple exist)
+EAC3=$(echo "$STREAMS" | jq -r '.streams[] | select(.codec_type=="audio" and .codec_name=="eac3" and (.tags.language=="eng" or .tags.language==null or .tags.language=="")) | "\(.index),\(.channels // 0)"' | sort -t, -k2 -rn | cut -d, -f1 | head -1)
 
 if [ -z "$EAC3" ]; then
-  echo "Error: No English EAC3 audio found"
-  exit 1
+  echo "⚠ No English EAC3 audio found (will skip .eac3 extraction)"
+  EAC3_FOUND=0
+else
+  echo "✓ English EAC3 audio: 0:$EAC3"
+  EAC3_FOUND=1
 fi
-
-echo "✓ English EAC3 audio: 0:$EAC3"
 
 # Get ALL English SRT subtitles
 SRT_SUBS=$(echo "$STREAMS" | jq -r '.streams[] | select(.codec_type=="subtitle" and .codec_name=="subrip" and (.tags.language=="eng" or .tags.language==null or .tags.language=="")) | .index')
@@ -84,15 +85,25 @@ done
 echo ""
 echo "Extracting streams..."
 
-# Run ffmpeg - one shot, two outputs
-ffmpeg -i "$INPUT" \
-  $MAP_ARGS \
-  -c copy \
-  "$OUTPUT_MKV" \
-  -map "0:$EAC3" \
-  -c:a copy \
-  "$OUTPUT_EAC3"
+# Run ffmpeg - one shot, two outputs (or just one if no EAC3)
+if [ $EAC3_FOUND -eq 1 ]; then
+  ffmpeg -i "$INPUT" \
+    $MAP_ARGS \
+    -c copy \
+    "$OUTPUT_MKV" \
+    -map "0:$EAC3" \
+    -c:a copy \
+    "$OUTPUT_EAC3"
 
-echo ""
-echo "✓ Created: $OUTPUT_MKV (video + TrueHD + subs)"
-echo "✓ Created: $OUTPUT_EAC3 (English EAC3)"
+  echo ""
+  echo "✓ Created: $OUTPUT_MKV (video + TrueHD + subs)"
+  echo "✓ Created: $OUTPUT_EAC3 (English EAC3)"
+else
+  ffmpeg -i "$INPUT" \
+    $MAP_ARGS \
+    -c copy \
+    "$OUTPUT_MKV"
+
+  echo ""
+  echo "✓ Created: $OUTPUT_MKV (video + TrueHD + subs)"
+fi
