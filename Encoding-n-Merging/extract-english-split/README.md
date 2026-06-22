@@ -41,7 +41,17 @@ chmod +x extract-mkv.sh
 
 # Custom output names
 ./extract-mkv.sh input.mkv custom.mkv custom.en.eac3
+
+# Specify output directory (creates if missing)
+./extract-mkv.sh input.mkv -od ./output
+
+# Custom names + output directory
+./extract-mkv.sh input.mkv custom.mkv custom.en.eac3 -od ./output
 ```
+
+### Options
+
+- `-od, --output-dir <dir>` — Create and place outputs in the specified directory
 
 ### Output
 
