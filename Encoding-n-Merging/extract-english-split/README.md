@@ -9,9 +9,11 @@ Given an MKV file with:
 
 It produces:
 1. **output.mkv** — video + TrueHD audio + English subtitles (SRT preferred, with PGS/VobSub fallback)
-2. **output.en.eac3** — standalone English EAC3 audio track
+2. **output.en.eac3** — standalone English EAC3 audio track (if it exists)
 
 All streams are copied without re-encoding. No intermediate files needed.
+
+If multiple English EAC3 tracks exist, the one with the most channels is selected. If no English EAC3 is found, only the MKV is created.
 
 ## Requirements
 
