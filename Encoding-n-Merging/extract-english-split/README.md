@@ -4,16 +4,18 @@ One-shot MKV extraction script that separates video/audio/subs and extracts Engl
 
 ## What it does
 
-Given an MKV file with:
-- Video + TrueHD Atmos audio + EAC3 audio + non-English audio + subtitles
+Given an MKV file with multiple audio tracks and subtitles, it extracts:
 
-It produces:
-1. **output.mkv** — video + TrueHD audio + English subtitles (SRT preferred, with PGS/VobSub fallback)
-2. **output.en.eac3** — standalone English EAC3 audio track (if it exists)
+1. **output.mkv** — video + master audio + English subtitles
+   - Master audio priority: TrueHD > DTS-HD > DTS
+   - Subtitles: SRT (preferred) → PGS → VobSub
+2. **output.en.[codec]** — standalone fallback audio track (if available)
+   - Fallback audio priority: EAC3 > AC3 > AAC
+   - Extension matches codec: `.eac3`, `.ac3`, or `.aac`
+   - If multiple tracks exist, the one with most channels is selected
+   - If no fallback audio is found, only the MKV is created
 
 All streams are copied without re-encoding. No intermediate files needed.
-
-If multiple English EAC3 tracks exist, the one with the most channels is selected. If no English EAC3 is found, only the MKV is created.
 
 ## Requirements
 
@@ -36,17 +38,21 @@ sudo dnf install ffmpeg jq
 ```bash
 chmod +x extract-mkv.sh
 
-# Basic usage (auto-generated output names)
-./extract-mkv.sh input.mkv
+# Basic usage (output names derived from input)
+# Input: movie.2016.2160p.truehd.x265.mkv
+# Output: rip-movie.2016.2160p.truehd.x265.mkv + rip-movie.2016.2160p.truehd.x265.en.eac3
+# (prefixed with 'rip-' to avoid overwriting the input file)
+# (audio extension matches codec: .eac3, .ac3, or .aac)
+./extract-mkv.sh movie.2016.2160p.truehd.x265.mkv
 
-# Custom output names
-./extract-mkv.sh input.mkv custom.mkv custom.en.eac3
+# Custom output names (no collision, no prefix)
+./extract-mkv.sh input.mkv custom.mkv custom.en
 
 # Specify output directory (creates if missing)
 ./extract-mkv.sh input.mkv -od ./output
 
 # Custom names + output directory
-./extract-mkv.sh input.mkv custom.mkv custom.en.eac3 -od ./output
+./extract-mkv.sh input.mkv custom.mkv custom.en -od ./output
 ```
 
 ### Options
@@ -60,20 +66,23 @@ chmod +x extract-mkv.sh
 
 ## How it works
 
-1. **Auto-detects streams** using ffprobe:
+1. **Auto-detects master audio** using ffprobe (priority: TrueHD > DTS-HD > DTS):
    - Video stream (first found)
-   - TrueHD audio (required)
-   - English EAC3 audio (required)
+   - Master audio (required)
    - English subtitles (SRT, PGS, or VobSub)
 
-2. **Subtitle fallback chain**:
+2. **Auto-detects fallback audio** (priority: EAC3 > AC3 > AAC):
+   - Optional; if multiple tracks exist, selects the one with most channels
+   - Extension automatically matches codec (`.eac3`, `.ac3`, or `.aac`)
+
+3. **Subtitle fallback chain**:
    - Looks for English SRT subtitles first
    - Falls back to English PGS (HDMV) if no SRT
    - Falls back to English VobSub if no PGS
    - Warns if no English subtitles found
 
-3. **Single ffmpeg command**:
-   - Maps selected streams to two outputs
+4. **Single ffmpeg command**:
+   - Maps selected streams to outputs
    - Uses `-c copy` (stream copy, no re-encoding)
    - Completes in one pass
 
@@ -82,11 +91,10 @@ chmod +x extract-mkv.sh
 - Language detection relies on stream language tags. If missing, assumes all tracks are English.
 - If multiple English SRT subtitles exist (e.g., SDH + regular), both are included.
 - Non-English audio tracks are excluded from the MKV output.
-- The script exits with error if required streams (TrueHD, EAC3) are not found.
+- Fallback audio is optional; if not found, only the MKV is created.
 
 ## Limitations
 
-- Hardcoded to expect TrueHD and EAC3 audio. For different codecs, edit the script to change codec names.
 - Assumes first video stream is the one to extract.
 - Language detection won't work if stream metadata lacks language tags.
 
@@ -97,13 +105,13 @@ $ ./extract-mkv.sh movie.mkv
 
 Analyzing streams in movie.mkv...
 ✓ Video stream: 0:0
-✓ TrueHD audio: 0:1
-✓ English EAC3 audio: 0:2
+✓ Master audio (TRUEHD): 0:1
+✓ Fallback audio (EAC3): 0:2
 ✓ English subtitles: 3 4
 
 Extracting streams...
 [ffmpeg output...]
 
-✓ Created: output.mkv (video + TrueHD + subs)
-✓ Created: output.en.eac3 (English EAC3)
+✓ Created: output.mkv (video + master audio + subs)
+✓ Created: output.en.eac3 (English fallback audio)
 ```
