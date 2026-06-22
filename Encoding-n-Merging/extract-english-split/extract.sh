@@ -1,13 +1,45 @@
 #!/bin/bash
 set -e
 
-INPUT="$1"
-OUTPUT_MKV="${2:-output.mkv}"
-OUTPUT_EAC3="${3:-output.en.eac3}"
+INPUT=""
+OUTPUT_MKV="output.mkv"
+OUTPUT_EAC3="output.en.eac3"
+OUTPUT_DIR=""
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -od|--output-dir)
+      OUTPUT_DIR="$2"
+      shift 2
+      ;;
+    -*)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+    *)
+      if [ -z "$INPUT" ]; then
+        INPUT="$1"
+      elif [ "$OUTPUT_MKV" = "output.mkv" ]; then
+        OUTPUT_MKV="$1"
+      else
+        OUTPUT_EAC3="$1"
+      fi
+      shift
+      ;;
+  esac
+done
 
 if [ -z "$INPUT" ]; then
-  echo "Usage: $0 <input.mkv> [output.mkv] [output.en.eac3]"
+  echo "Usage: $0 <input.mkv> [output.mkv] [output.en.eac3] [-od|--output-dir <dir>]"
   exit 1
+fi
+
+# Create output directory if specified
+if [ -n "$OUTPUT_DIR" ]; then
+  mkdir -p "$OUTPUT_DIR"
+  OUTPUT_MKV="$OUTPUT_DIR/$OUTPUT_MKV"
+  OUTPUT_EAC3="$OUTPUT_DIR/$OUTPUT_EAC3"
 fi
 
 if [ ! -f "$INPUT" ]; then
