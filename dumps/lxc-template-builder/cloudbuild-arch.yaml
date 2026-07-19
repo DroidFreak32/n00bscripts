@@ -98,7 +98,7 @@ steps:
       - |
         apk add --no-cache zstd
         zstd -19 -T0 /workspace/rootfs-new.tar \
-          -o /workspace/archlinux-custom_$(date +%Y%m%d)-1_amd64.tar.zst
+          -o /workspace/archlinux-custom_$(date +%Y%m%d)_amd64.tar.zst
 
   # 7. Upload result
   - name: 'gcr.io/cloud-builders/gsutil'

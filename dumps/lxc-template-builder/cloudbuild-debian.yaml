@@ -88,12 +88,12 @@ steps:
       - |
         apk add --no-cache zstd
         zstd -19 -T0 /workspace/rootfs-new.tar \
-          -o /workspace/debian-custom_$(date +%Y%m%d)-1_amd64.tar.zst
+          -o /workspace/${_DEBIAN_RELEASE}-custom_$(date +%Y%m%d)_amd64.tar.zst
 
   # 6. Upload result
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'bash'
-    args: ['-c', 'gsutil cp /workspace/debian-custom_*.tar.zst ${_BUCKET}/custom/']
+    args: ['-c', 'gsutil cp /workspace/${_DEBIAN_RELEASE}-custom_*.tar.zst ${_BUCKET}/custom/']
 
 options:
   machineType: 'E2_HIGHCPU_8'

@@ -146,11 +146,16 @@ Adding a new distro means adding `<name>.env` +
 
 ## Getting the result onto Proxmox
 
+Output filenames:
+- Arch: `archlinux-custom_YYYYMMDD_amd64.tar.zst`
+- Debian: `<release-codename>-custom_YYYYMMDD_amd64.tar.zst`, e.g.
+  `trixie-custom_20260720_amd64.tar.zst`
+
 ```bash
-gsutil cp gs://your-bucket/custom/<distro>-custom_YYYYMMDD-1_amd64.tar.zst \
+gsutil cp gs://your-bucket/custom/<filename>.tar.zst \
   /var/lib/vz/template/cache/
 
-pct create <vmid> local:vztmpl/<distro>-custom_YYYYMMDD-1_amd64.tar.zst \
+pct create <vmid> local:vztmpl/<filename>.tar.zst \
   --hostname my-container \
   --memory 512 \
   --net0 name=eth0,bridge=vmbr0,ip=dhcp \
