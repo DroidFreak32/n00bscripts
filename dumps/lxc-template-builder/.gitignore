@@ -1,0 +1,8 @@
+# Real env files contain your actual GCP project/bucket details - never commit them.
+# Only the .example versions (with placeholder values) are tracked.
+*.env
+!*.env.example
+
+# LXC template tarballs are large binaries and shouldn't live in git.
+*.tar.zst
+*.tar

@@ -1,0 +1,87 @@
+# Builds a customized Debian LXC template from an existing base template.
+#
+# Flow:
+#   1. Pull the old base template down from GCS
+#   2. Decompress zstd -> plain tar
+#   3. `docker import` it into a throwaway image
+#   4. Run a container from it: apt-get update/upgrade, install packages, clean up
+#   5. `docker export` the container's filesystem back to a plain tar
+#   6. Recompress with zstd
+#   7. Upload the finished template back to GCS
+#
+# Trigger with ./submit-build.sh build-debian.env cloudbuild-debian.yaml, or directly:
+#   gcloud builds submit --config=cloudbuild-debian.yaml --no-source \
+#     --substitutions=_PACKAGES="htop",_BUCKET="gs://your-bucket",_SRC_TEMPLATE="debian-12-standard_12.7-1_amd64.tar.zst"
+
+timeout: 1200s
+
+substitutions:
+  _PACKAGES: "htop"
+  _BUCKET: "gs://CHANGE_ME"
+  _SRC_TEMPLATE: "debian-12-standard_12.7-1_amd64.tar.zst"
+
+steps:
+  # 1. Fetch old template
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', '${_BUCKET}/base/${_SRC_TEMPLATE}', '/workspace/src.tar.zst']
+
+  # 2. Decompress to plain tar
+  - name: 'alpine:latest'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        apk add --no-cache zstd
+        zstd -d /workspace/src.tar.zst -o /workspace/rootfs.tar
+
+  # 3. Import as docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: ['-c', 'docker import /workspace/rootfs.tar debian-base:build']
+
+  # 4. Customize: update + install packages + clean up
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker run --name debian-build debian-base:build sh -c "
+          printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d &&
+          chmod +x /usr/sbin/policy-rc.d &&
+          export DEBIAN_FRONTEND=noninteractive &&
+          apt-get update &&
+          apt-get -y upgrade &&
+          apt-get -y install --no-install-recommends ${_PACKAGES} &&
+          apt-get -y autoremove &&
+          apt-get clean &&
+          rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb /tmp/* /var/tmp/* &&
+          rm -f /etc/machine-id &&
+          rm -f /usr/sbin/policy-rc.d
+        "
+
+  # 5. Export filesystem back to plain tar
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker export debian-build -o /workspace/rootfs-new.tar
+        docker rm debian-build
+
+  # 6. Recompress with zstd
+  - name: 'alpine:latest'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        apk add --no-cache zstd
+        zstd -19 -T0 /workspace/rootfs-new.tar \
+          -o /workspace/debian-custom_$(date +%Y%m%d)-1_amd64.tar.zst
+
+  # 7. Upload result
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'bash'
+    args: ['-c', 'gsutil cp /workspace/debian-custom_*.tar.zst ${_BUCKET}/custom/']
+
+options:
+  machineType: 'E2_HIGHCPU_8'
