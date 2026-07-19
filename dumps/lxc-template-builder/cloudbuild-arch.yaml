@@ -12,8 +12,11 @@
 #   6. Recompress with zstd
 #   7. Upload the finished template to GCS
 #
-# Trigger with ./submit-build.sh (reads values from build.env), or directly:
-#   gcloud builds submit --config=cloudbuild.yaml --no-source \
+# Trigger with:
+#   DISTRO=arch ./submit-build.sh
+# (reads shared settings from build.env and Arch-specific settings from
+# arch.env), or directly:
+#   gcloud builds submit --config=cloudbuild-arch.yaml --no-source \
 #     --substitutions=_PACKAGES="htop",_BUCKET="gs://your-bucket",_BASE_IMAGE="archlinux-bootstrap-x86_64.tar.zst"
 
 timeout: 1200s

@@ -1,46 +1,59 @@
 #!/usr/bin/env bash
-# Submits the LXC template build to Google Cloud Build, pulling variables
-# from an env file (default: build.env) instead of hardcoding them in yaml.
+# Submits an LXC template build to Google Cloud Build.
 #
 # Usage:
-#   ./submit-build.sh                                    # build.env + cloudbuild.yaml
-#   ./submit-build.sh other.env                          # other.env + cloudbuild.yaml
-#   ./submit-build.sh build-debian.env cloudbuild-debian.yaml
+#   DISTRO=arch   ./submit-build.sh
+#   DISTRO=debian ./submit-build.sh
+#
+# DISTRO selects which files this script uses:
+#   - <DISTRO>.env          distro-specific settings (packages, base image, ...)
+#   - cloudbuild-<DISTRO>.yaml   the Cloud Build pipeline itself
+#
+# Settings shared across every distro (GCP project, region, upload bucket)
+# always come from build.env.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="${1:-$SCRIPT_DIR/build.env}"
-CONFIG_FILE="${2:-$SCRIPT_DIR/cloudbuild.yaml}"
 
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "Env file not found: $ENV_FILE" >&2
-  exit 1
-fi
+: "${DISTRO:?Set DISTRO to select a pipeline, e.g. DISTRO=arch ./submit-build.sh}"
 
-if [[ ! -f "$CONFIG_FILE" ]]; then
-  echo "Config file not found: $CONFIG_FILE" >&2
-  exit 1
-fi
+BUILD_ENV_FILE="$SCRIPT_DIR/build.env"
+DISTRO_ENV_FILE="$SCRIPT_DIR/${DISTRO}.env"
+CONFIG_FILE="$SCRIPT_DIR/cloudbuild-${DISTRO}.yaml"
+
+for f in "$BUILD_ENV_FILE" "$DISTRO_ENV_FILE" "$CONFIG_FILE"; do
+  if [[ ! -f "$f" ]]; then
+    echo "Required file not found: $f" >&2
+    exit 1
+  fi
+done
 
 set -a
 # shellcheck disable=SC1090
-source "$ENV_FILE"
+source "$BUILD_ENV_FILE"
+# shellcheck disable=SC1090
+source "$DISTRO_ENV_FILE"
 set +a
 
-: "${PROJECT_ID:?PROJECT_ID must be set in $ENV_FILE}"
-: "${BUCKET:?BUCKET must be set in $ENV_FILE}"
-: "${PACKAGES:?PACKAGES must be set in $ENV_FILE}"
+: "${PROJECT_ID:?PROJECT_ID must be set in build.env}"
+: "${REGION:?REGION must be set in build.env}"
+: "${BUCKET:?BUCKET must be set in build.env}"
+: "${PACKAGES:?PACKAGES must be set in ${DISTRO}.env}"
 
-# BASE_IMAGE (Arch) and DEBIAN_RELEASE (Debian) are pipeline-specific -
-# only pass along whichever one is actually set in the env file, and let
-# the yaml's own default apply for the other.
+# Distro-specific substitutions vary per pipeline (BASE_IMAGE for arch,
+# DEBIAN_RELEASE for debian, ...) - only pass along what's actually set in
+# the sourced env file, and let that pipeline's own yaml default apply for
+# anything not overridden.
 SUBSTITUTIONS="_PACKAGES=${PACKAGES},_BUCKET=${BUCKET}"
 [[ -n "${BASE_IMAGE:-}" ]] && SUBSTITUTIONS+=",_BASE_IMAGE=${BASE_IMAGE}"
+[[ -n "${MIRROR:-}" ]] && SUBSTITUTIONS+=",_MIRROR=${MIRROR}"
 [[ -n "${DEBIAN_RELEASE:-}" ]] && SUBSTITUTIONS+=",_DEBIAN_RELEASE=${DEBIAN_RELEASE}"
 
+echo "==> DISTRO=${DISTRO}  project=${PROJECT_ID}  region=${REGION}  config=$(basename "$CONFIG_FILE")"
+
 gcloud builds submit \
-  --region="asia-south2" \
+  --region="$REGION" \
   --project="$PROJECT_ID" \
   --config="$CONFIG_FILE" \
   --no-source \

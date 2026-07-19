@@ -11,7 +11,10 @@
 #   5. Recompress with zstd
 #   6. Upload the finished template to GCS
 #
-# Trigger with ./submit-build.sh build-debian.env cloudbuild-debian.yaml, or directly:
+# Trigger with:
+#   DISTRO=debian ./submit-build.sh
+# (reads shared settings from build.env and Debian-specific settings from
+# debian.env), or directly:
 #   gcloud builds submit --config=cloudbuild-debian.yaml --no-source \
 #     --substitutions=_PACKAGES="htop",_BUCKET="gs://your-bucket",_DEBIAN_RELEASE="trixie"
 
