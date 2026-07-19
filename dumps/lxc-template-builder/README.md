@@ -17,7 +17,8 @@ Both pipelines follow the same shape:
    notes below).
 2. `docker import` it into a throwaway image.
 3. Run a container from that image: update packages, install your chosen
-   package list, clean up (package caches, `/etc/machine-id`, temp files).
+   package list, run `scripts/<distro>.sh` (see below), clean up (package
+   caches, `/etc/machine-id`, temp files).
 4. `docker export` the container's filesystem back to a plain tarball.
 5. Recompress with `zstd` and upload the result to a GCS bucket.
 
@@ -75,6 +76,25 @@ normal.
   actually start services against a container with no real init running as
   PID 1.
 
+## Custom build-time scripts
+
+`scripts/arch.sh` and `scripts/debian.sh` run *inside* the build container,
+after packages are installed and before final cleanup - anything they
+create (files, configs, users, etc.) becomes a permanent part of the baked
+template image. This is **not** a container startup/cloud-init script; it
+runs exactly once, at image build time, never again on the containers
+cloned from the template.
+
+Both ship as harmless no-ops by default (safe to leave as-is), and run
+under `bash` (guaranteed present on both distros regardless of package
+selection). The build fails if the script exits non-zero.
+
+Since these scripts are local files (not fetched from a URL like everything
+else in the pipeline), `submit-build.sh` submits the repo directory itself
+as Cloud Build source (see `.gcloudignore` for what's excluded from that
+upload - notably `build.env` and any stray `.tar`/`.tar.zst` files) instead
+of using `--no-source`.
+
 ## Prerequisites
 
 - [`gcloud` CLI](https://cloud.google.com/sdk/docs/install), authenticated
@@ -97,7 +117,11 @@ debian.env              Debian recipe: DEBIAN_RELEASE, PACKAGES
 cloudbuild-arch.yaml    Arch Cloud Build pipeline
 cloudbuild-debian.yaml  Debian Cloud Build pipeline
 
+scripts/arch.sh         custom build-time script, baked into the Arch image
+scripts/debian.sh       custom build-time script, baked into the Debian image
+
 submit-build.sh         entry point, driven by the DISTRO env var
+.gcloudignore           excludes secrets/large files from the Cloud Build source upload
 ```
 
 `arch.env`/`debian.env` hold no secrets (just package lists and version

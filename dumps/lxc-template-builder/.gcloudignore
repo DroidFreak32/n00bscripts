@@ -1,0 +1,11 @@
+# Controls what gets uploaded as Cloud Build source when submit-build.sh
+# runs `gcloud builds submit .`. Keep this in sync with .gitignore's intent:
+# don't upload secrets or large local artifacts that the pipeline doesn't
+# actually need (everything the pipeline itself needs is fetched fresh from
+# upstream mirrors during the build).
+
+.git/
+.gcloudignore
+build.env
+*.tar.zst
+*.tar

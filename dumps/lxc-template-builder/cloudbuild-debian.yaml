@@ -48,19 +48,22 @@ steps:
     entrypoint: 'bash'
     args: ['-c', 'docker import /workspace/rootfs.tar debian-base:build']
 
-  # 3. Customize: update + install packages + clean up
+  # 3. Customize: update + install packages + run custom build script + clean up
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        docker run --name debian-build debian-base:build sh -c "
+        docker run --name debian-build \
+          -v /workspace/scripts/debian.sh:/custom-build.sh:ro \
+          debian-base:build sh -c "
           printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d &&
           chmod +x /usr/sbin/policy-rc.d &&
           export DEBIAN_FRONTEND=noninteractive &&
           apt-get update &&
           apt-get -y upgrade &&
           apt-get -y install --no-install-recommends ${_PACKAGES} &&
+          bash /custom-build.sh &&
           apt-get -y autoremove &&
           apt-get clean &&
           rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb /tmp/* /var/tmp/* &&

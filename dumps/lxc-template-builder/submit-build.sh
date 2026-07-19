@@ -52,9 +52,11 @@ SUBSTITUTIONS="_PACKAGES=${PACKAGES},_BUCKET=${BUCKET}"
 
 echo "==> DISTRO=${DISTRO}  project=${PROJECT_ID}  region=${REGION}  config=$(basename "$CONFIG_FILE")"
 
-gcloud builds submit \
+# Submit the repo directory as build source (see .gcloudignore for what's
+# excluded) rather than --no-source, so scripts/<distro>.sh reaches
+# Cloud Build's /workspace and the pipeline can run it during the build.
+gcloud builds submit "$SCRIPT_DIR" \
   --region="$REGION" \
   --project="$PROJECT_ID" \
   --config="$CONFIG_FILE" \
-  --no-source \
   --substitutions="$SUBSTITUTIONS"
