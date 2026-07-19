@@ -1,38 +1,54 @@
-# Builds a customized Arch Linux LXC template from an existing base template.
+# Builds a customized Arch Linux LXC template from the official upstream
+# Arch bootstrap tarball (GPG-verified, HTTPS) instead of Proxmox's
+# HTTP-only, unsigned copy.
 #
 # Flow:
-#   1. Pull the old base template down from GCS
-#   2. Decompress zstd -> plain tar
+#   1. Fetch the bootstrap tarball + signature from an official Arch mirror,
+#      verify against Pierre Schmitz's release-signing key (fetched via WKD)
+#   2. Decompress zstd, strip the "root.x86_64/" wrapper dir -> plain rootfs tar
 #   3. `docker import` it into a throwaway image
 #   4. Run a container from it: pacman -Syu, install packages, clean up
 #   5. `docker export` the container's filesystem back to a plain tar
 #   6. Recompress with zstd
-#   7. Upload the finished template back to GCS
+#   7. Upload the finished template to GCS
 #
 # Trigger with ./submit-build.sh (reads values from build.env), or directly:
 #   gcloud builds submit --config=cloudbuild.yaml --no-source \
-#     --substitutions=_PACKAGES="htop",_BUCKET="gs://your-bucket",_SRC_TEMPLATE="archlinux-base_20260420-1_amd64.tar.zst"
+#     --substitutions=_PACKAGES="htop",_BUCKET="gs://your-bucket",_BASE_IMAGE="archlinux-bootstrap-x86_64.tar.zst"
 
 timeout: 1200s
 
 substitutions:
   _PACKAGES: "htop"
   _BUCKET: "gs://CHANGE_ME"
-  _SRC_TEMPLATE: "archlinux-base_20260420-1_amd64.tar.zst"
+  _BASE_IMAGE: "archlinux-bootstrap-x86_64.tar.zst"
+  _MIRROR: "https://geo.mirror.pkgbuild.com/iso/latest"
 
 steps:
-  # 1. Fetch old template
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', '${_BUCKET}/base/${_SRC_TEMPLATE}', '/workspace/src.tar.zst']
-
-  # 2. Decompress to plain tar
+  # 1. Fetch bootstrap tarball + signature, verify PGP signature
   - name: 'alpine:latest'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        apk add --no-cache zstd
-        zstd -d /workspace/src.tar.zst -o /workspace/rootfs.tar
+        apk add --no-cache curl gnupg
+        curl -fSL "${_MIRROR}/${_BASE_IMAGE}" -o /workspace/src.tar.zst
+        curl -fSL "${_MIRROR}/${_BASE_IMAGE}.sig" -o /workspace/src.tar.zst.sig
+        gpg --auto-key-locate clear,wkd -v --locate-external-key pierre@archlinux.org
+        gpg --verify /workspace/src.tar.zst.sig /workspace/src.tar.zst
+
+  # 2. Decompress and strip the "root.x86_64/" wrapper dir the bootstrap
+  #    tarball ships with, producing a flat rootfs tar like Proxmox's format
+  - name: 'alpine:latest'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        apk add --no-cache zstd tar
+        zstd -d /workspace/src.tar.zst -o /workspace/bootstrap.tar
+        mkdir -p /workspace/rootfs-dir
+        tar -xf /workspace/bootstrap.tar -C /workspace/rootfs-dir --strip-components=1
+        tar --numeric-owner -C /workspace/rootfs-dir -cf /workspace/rootfs.tar .
 
   # 3. Import as docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -47,10 +63,13 @@ steps:
       - |
         docker run --name arch-build arch-base:build sh -c "
           sed -i '/^\[options\]/a DisableSandbox' /etc/pacman.conf &&
+          echo 'Server = https://geo.mirror.pkgbuild.com/\$repo/os/\$arch' > /etc/pacman.d/mirrorlist &&
           pacman-key --init &&
           pacman-key --populate archlinux &&
           pacman -Syu --noconfirm &&
           pacman -S --noconfirm ${_PACKAGES} &&
+          systemctl enable console-getty.service &&
+          systemctl mask systemd-firstboot.service &&
           pacman -Scc --noconfirm &&
           rm -rf /var/cache/pacman/pkg/* /tmp/* /var/tmp/* &&
           rm -f /etc/machine-id

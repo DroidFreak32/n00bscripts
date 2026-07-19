@@ -1,45 +1,51 @@
-# Builds a customized Debian LXC template from an existing base template.
+# Builds a customized Debian LXC template from scratch using debootstrap
+# against Debian's official HTTPS mirror, instead of pulling any prebuilt
+# template from Proxmox's HTTP-only server.
 #
 # Flow:
-#   1. Pull the old base template down from GCS
-#   2. Decompress zstd -> plain tar
-#   3. `docker import` it into a throwaway image
-#   4. Run a container from it: apt-get update/upgrade, install packages, clean up
-#   5. `docker export` the container's filesystem back to a plain tar
-#   6. Recompress with zstd
-#   7. Upload the finished template back to GCS
+#   1. debootstrap a minimal rootfs for _DEBIAN_RELEASE directly from
+#      deb.debian.org (HTTPS, apt signature-verified) -> plain rootfs tar
+#   2. `docker import` it into a throwaway image
+#   3. Run a container from it: apt-get update/upgrade, install packages, clean up
+#   4. `docker export` the container's filesystem back to a plain tar
+#   5. Recompress with zstd
+#   6. Upload the finished template to GCS
 #
 # Trigger with ./submit-build.sh build-debian.env cloudbuild-debian.yaml, or directly:
 #   gcloud builds submit --config=cloudbuild-debian.yaml --no-source \
-#     --substitutions=_PACKAGES="htop",_BUCKET="gs://your-bucket",_SRC_TEMPLATE="debian-12-standard_12.7-1_amd64.tar.zst"
+#     --substitutions=_PACKAGES="htop",_BUCKET="gs://your-bucket",_DEBIAN_RELEASE="trixie"
 
 timeout: 1200s
 
 substitutions:
   _PACKAGES: "htop"
   _BUCKET: "gs://CHANGE_ME"
-  _SRC_TEMPLATE: "debian-12-standard_12.7-1_amd64.tar.zst"
+  _DEBIAN_RELEASE: "trixie"
 
 steps:
-  # 1. Fetch old template
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', '${_BUCKET}/base/${_SRC_TEMPLATE}', '/workspace/src.tar.zst']
-
-  # 2. Decompress to plain tar
-  - name: 'alpine:latest'
-    entrypoint: 'sh'
+  # 1. Build a fresh minimal rootfs with debootstrap (runs in a sibling
+  #    container with --cap-add=SYS_ADMIN so it can bind-mount /proc for
+  #    package postinst scripts during the second stage)
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
     args:
       - '-c'
       - |
-        apk add --no-cache zstd
-        zstd -d /workspace/src.tar.zst -o /workspace/rootfs.tar
+        mkdir -p /workspace/rootfs-dir
+        docker run --rm --cap-add=SYS_ADMIN -v /workspace:/workspace debian:stable-slim bash -c "
+          apt-get update &&
+          apt-get install -y --no-install-recommends debootstrap ca-certificates &&
+          debootstrap --variant=minbase --include=ifupdown,isc-dhcp-client,systemd-sysv,dialog ${_DEBIAN_RELEASE} /workspace/rootfs-dir https://deb.debian.org/debian &&
+          rm -rf /workspace/rootfs-dir/dev/* &&
+          tar --numeric-owner -C /workspace/rootfs-dir -cf /workspace/rootfs.tar .
+        "
 
-  # 3. Import as docker image
+  # 2. Import as docker image
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args: ['-c', 'docker import /workspace/rootfs.tar debian-base:build']
 
-  # 4. Customize: update + install packages + clean up
+  # 3. Customize: update + install packages + clean up
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
@@ -59,7 +65,7 @@ steps:
           rm -f /usr/sbin/policy-rc.d
         "
 
-  # 5. Export filesystem back to plain tar
+  # 4. Export filesystem back to plain tar
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
@@ -68,7 +74,7 @@ steps:
         docker export debian-build -o /workspace/rootfs-new.tar
         docker rm debian-build
 
-  # 6. Recompress with zstd
+  # 5. Recompress with zstd
   - name: 'alpine:latest'
     entrypoint: 'sh'
     args:
@@ -78,7 +84,7 @@ steps:
         zstd -19 -T0 /workspace/rootfs-new.tar \
           -o /workspace/debian-custom_$(date +%Y%m%d)-1_amd64.tar.zst
 
-  # 7. Upload result
+  # 6. Upload result
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'bash'
     args: ['-c', 'gsutil cp /workspace/debian-custom_*.tar.zst ${_BUCKET}/custom/']

@@ -30,12 +30,18 @@ set +a
 
 : "${PROJECT_ID:?PROJECT_ID must be set in $ENV_FILE}"
 : "${BUCKET:?BUCKET must be set in $ENV_FILE}"
-: "${SRC_TEMPLATE:?SRC_TEMPLATE must be set in $ENV_FILE}"
 : "${PACKAGES:?PACKAGES must be set in $ENV_FILE}"
+
+# BASE_IMAGE (Arch) and DEBIAN_RELEASE (Debian) are pipeline-specific -
+# only pass along whichever one is actually set in the env file, and let
+# the yaml's own default apply for the other.
+SUBSTITUTIONS="_PACKAGES=${PACKAGES},_BUCKET=${BUCKET}"
+[[ -n "${BASE_IMAGE:-}" ]] && SUBSTITUTIONS+=",_BASE_IMAGE=${BASE_IMAGE}"
+[[ -n "${DEBIAN_RELEASE:-}" ]] && SUBSTITUTIONS+=",_DEBIAN_RELEASE=${DEBIAN_RELEASE}"
 
 gcloud builds submit \
   --region="asia-south2" \
   --project="$PROJECT_ID" \
   --config="$CONFIG_FILE" \
   --no-source \
-  --substitutions="_PACKAGES=${PACKAGES},_BUCKET=${BUCKET},_SRC_TEMPLATE=${SRC_TEMPLATE}"
+  --substitutions="$SUBSTITUTIONS"
